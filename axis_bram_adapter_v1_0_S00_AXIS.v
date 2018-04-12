@@ -35,7 +35,7 @@
 	  end
 	endfunction
 
-	// Total number of input data.
+	// Total number of input data, seems only has something to do with fifo size
 	localparam NUMBER_OF_INPUT_WORDS  = 8;
 	// bit_num gives the minimum number of bits needed to address 'NUMBER_OF_INPUT_WORDS' size of FIFO.
 	localparam bit_num  = clogb2(NUMBER_OF_INPUT_WORDS-1);
