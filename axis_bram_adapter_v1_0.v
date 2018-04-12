@@ -97,7 +97,29 @@
     wire [C_S00_AXIS_TDATA_WIDTH - 1: 0] axis_out;
     wire buffer_accep;
     wire axis_out_valid;
+
+	// Add user logic here
+    always@(posedge s00_axis_aclk)
+    begin
+        if(!s00_axis_aresetn)
+        begin
+            buf_ptr <= 0;
+        end
+        else
+        begin
+            if(axis_out_valid)
+            begin
+                shadow_buffer[buf_ptr*8 + 7 -: 8]
+            buf_ptr <= buf_ptr + 1;
+
+            
+
+
     
+
+	// User logic ends
+
+
 		parameter integer  32,
 // Instantiation of Axi Bus Interface S00_AXIS
 	axis_bram_adapter_v1_0_S00_AXIS # ( 
@@ -156,11 +178,4 @@
 		.S_AXI_RVALID(s02_axi_rvalid),
 		.S_AXI_RREADY(s02_axi_rready)
 	);
-
-	// Add user logic here
-
-    
-
-	// User logic ends
-
 	endmodule
