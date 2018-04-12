@@ -93,10 +93,19 @@
     //User Resources
     reg [ptr_width -1: 0] buf_ptr;
     reg [BRAM_WIDTH - 1: 0] buffer;
-    reg [BRAM_WIDTH - 1: 0] shadow_buffer;
     wire [C_S00_AXIS_TDATA_WIDTH - 1: 0] axis_out;
     wire buffer_accep;
     wire axis_out_valid;
+    reg bram_en_r;
+    reg bram_wen_r;
+    reg [BRAM_DEPTH-1:0] bram_addr_r;
+
+
+    assign bram_clk = s00_axis_aclk;
+    assign bram_out = buffer;
+    assign bram_en = bram_en_r;
+    assign bram_wen_r = bram_wen_r;
+    assign bram_addr = bram_addr_r
 
 	// Add user logic here
     always@(posedge s00_axis_aclk)
@@ -104,18 +113,35 @@
         if(!s00_axis_aresetn)
         begin
             buf_ptr <= 0;
+            buffer <= BRAM_WIDTH'b 0; 
+            bram_addr_r <= 0;
         end
         else
         begin
             if(axis_out_valid)
             begin
-                shadow_buffer[buf_ptr*8 + 7 -: 8]
-            buf_ptr <= buf_ptr + 1;
-
-            
-
-
-    
+                buffer[buf_ptr*C_S00_AXIS_TDATA_WIDTH + C_S00_AXIS_TDATA_WIDTH-1 -: C_S00_AXIS_TDATA_WIDTH ] = axis_out;
+                buf_ptr <= buf_ptr + 1;
+                if(buf_ptr == BRAM_WIDTH/C_S00_AXIS_TDATA_WIDTH - 1)
+                begin
+                    buf_ptr <= 0;
+                    buffer_accep = 0;
+                    //setting up bram to readout data
+                    bram_en_r <= 1'b1;
+                    bram_wen_r <= 1'b1;
+                    bram_addr_r <= bram_addr_r + 1;
+                end
+            end
+            else
+            begin
+                buf_ptr <= buf_ptr;
+                if(buf_ptr == 0)
+                begin
+                    bram_wen_r <= 1'b0;
+                    buffer_accep = 1'b1;
+                end
+            end
+        end
 
 	// User logic ends
 
