@@ -78,10 +78,34 @@
 		output wire  s02_axi_rvalid,
 		input wire  s02_axi_rready
 	);
+
+	function integer clogb2 (input integer bit_depth);
+	  begin
+	    for(clogb2=0; bit_depth>0; clogb2=clogb2+1)
+	      bit_depth = bit_depth >> 1;
+	  end
+	endfunction
+
+    //how many bit the buf_ptr need
+	localparam ptr_width  = clogb2(BRAM_WIDTH/C_S00_AXIS_TDATA_WIDTH -1);
+
+    
+    //User Resources
+    reg [ptr_width -1: 0] buf_ptr;
+    reg [BRAM_WIDTH - 1: 0] buffer;
+    reg [BRAM_WIDTH - 1: 0] shadow_buffer;
+    wire [C_S00_AXIS_TDATA_WIDTH - 1: 0] axis_out;
+    wire buffer_accep;
+    wire axis_out_valid;
+    
+		parameter integer  32,
 // Instantiation of Axi Bus Interface S00_AXIS
 	axis_bram_adapter_v1_0_S00_AXIS # ( 
 		.C_S_AXIS_TDATA_WIDTH(C_S00_AXIS_TDATA_WIDTH)
 	) axis_bram_adapter_v1_0_S00_AXIS_inst (
+        .DOUT_TO_BRAM(axis_out),
+        .DOUT_VALID(axis_out_valid),
+        .DOUT_ACCEP(buffer_accep),
 		.S_AXIS_ACLK(s00_axis_aclk),
 		.S_AXIS_ARESETN(s00_axis_aresetn),
 		.S_AXIS_TREADY(s00_axis_tready),
@@ -134,6 +158,7 @@
 	);
 
 	// Add user logic here
+
     
 
 	// User logic ends
