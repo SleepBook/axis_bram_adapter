@@ -92,10 +92,12 @@
     
     //User Resources
     reg [ptr_width -1: 0] buf_ptr;
-    reg [BRAM_WIDTH - 1: 0] buffer;
+    reg [BRAM_WIDTH - 1: 0] buf;
     wire [C_S00_AXIS_TDATA_WIDTH - 1: 0] axis_out;
-    wire buffer_accep;
+    wire buf_accep;
     wire axis_out_valid;
+    wire buf_full;
+    reg bram_done;
     reg bram_en_r;
     reg bram_wen_r;
     reg [BRAM_DEPTH-1:0] bram_addr_r;
@@ -105,43 +107,81 @@
     assign bram_out = buffer;
     assign bram_en = bram_en_r;
     assign bram_wen_r = bram_wen_r;
-    assign bram_addr = bram_addr_r
+    assign bram_addr = bram_addr_r;
 
 	// Add user logic here
+    // block to feed buffer from income stream
     always@(posedge s00_axis_aclk)
     begin
         if(!s00_axis_aresetn)
         begin
             buf_ptr <= 0;
-            buffer <= BRAM_WIDTH'b 0; 
-            bram_addr_r <= 0;
+            buffer <= BRAM_WIDTH'b0;
         end
         else
         begin
             if(axis_out_valid)
             begin
-                buffer[buf_ptr*C_S00_AXIS_TDATA_WIDTH + C_S00_AXIS_TDATA_WIDTH-1 -: C_S00_AXIS_TDATA_WIDTH ] = axis_out;
                 buf_ptr <= buf_ptr + 1;
+                buffer[buf_ptr*C_S00_AXIS_TDATA_WIDTH + C_S00_AXIS_TDATA_WIDTH-1 -: C_S00_AXIS_TDATA_WIDTH ] <= axis_out;
+
                 if(buf_ptr == BRAM_WIDTH/C_S00_AXIS_TDATA_WIDTH - 1)
                 begin
                     buf_ptr <= 0;
-                    buffer_accep = 0;
-                    //setting up bram to readout data
-                    bram_en_r <= 1'b1;
-                    bram_wen_r <= 1'b1;
-                    bram_addr_r <= bram_addr_r + 1;
-                end
-            end
-            else
-            begin
-                buf_ptr <= buf_ptr;
-                if(buf_ptr == 0)
-                begin
-                    bram_wen_r <= 1'b0;
-                    buffer_accep = 1'b1;
                 end
             end
         end
+    end
+
+    always@(*)
+    begin
+        if(buf_ptr == BRAM_WIDTH/C_S00_AXIS_TDATA_WIDTH - 1)
+        begin
+            buf_full = 1'b1;
+            buf_accept = 1'b0;
+        end
+        else if(bram_done == 1'b1)
+        begin
+            buf_accept = 1'b1;
+        end
+        else
+        begin
+            buf_full = 1'b0;
+            buf_accept = 1'b1;
+        end
+    end
+
+    //block to write buffer to bram
+    //the interface butween the buf controller is 
+    //buf_full (income wire)
+    //bram_done (outcome reg, single cycle delay
+    always@(posedge s00_axis_aclk)
+    begin
+        if(!s00_axis_aresetn)
+        begin
+            bram_add_r <= 0;
+            bram_en_r <= 1'b0;
+            bram_wen_r <= 1'b0;
+            bram_done <= 1'b0;
+        end
+        else
+        begin
+            if(buf_full)
+            begin
+                bram_en_r <= 1'b1;
+                bram_wen_r <= 1'b1;
+                bram_addr_r <= bram_addr_r + 1;
+                //current assume single cycle write done
+                //can be replaced with other mechanism as well
+                bram_done <= 1'b1;
+            end
+            if(bram_addr_r == BRAM_DEPTH)
+            begin
+                bram_addr_r = 1'b0;
+            end
+        end
+    end
+
 
 	// User logic ends
 
