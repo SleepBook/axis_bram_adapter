@@ -1,4 +1,9 @@
-
+//Modified AXI-lite interface
+//add a RW_MODE output wire
+//getting its value of slv_reg0[0]
+//slv_reg1 denotes the start address
+//slv_reg2 denotes the length of read back
+//0 represent read mode while 1 represent write mode
 `timescale 1 ns / 1 ps
 
 	module axis_bram_adapter_v1_0_S02_AXI #
@@ -78,7 +83,12 @@
 		output wire  S_AXI_RVALID,
 		// Read ready. This signal indicates that the master can
     		// accept the read data and response information.
-		input wire  S_AXI_RREADY
+		input wire  S_AXI_RREADY,
+        
+        //Added ports
+        output wire RW_MODE, 
+        output wire [C_S_AXI_DATA_WIDTH	-1:0] RD_BACK_ADDR, 
+        output wire [C_S_AXI_DATA_WIDTH	-1:0] RD_BACK_SIZE, 
 	);
 
 	// AXI4LITE signals
@@ -442,6 +452,10 @@
 	end    
 
 	// Add user logic here
+    assign RW_MODE = slv_reg0[0];
+    assign RD_BACK_ADDR = slv_reg1;
+    assign RD_BACK_SIZE = slv_reg2;
+
 
 	// User logic ends
 

@@ -1,13 +1,9 @@
-
+//modified axis master
+//sending data from reg to the bus
 `timescale 1 ns / 1 ps
 
 	module axis_bram_adapter_v1_0_M00_AXIS #
 	(
-		// Users to add parameters here
-
-		// User parameters ends
-		// Do not modify the parameters beyond this line
-
 		// Width of S_AXIS address bus. The slave accepts the read and write addresses of width C_M_AXIS_TDATA_WIDTH.
 		parameter integer C_M_AXIS_TDATA_WIDTH	= 32,
 		// Start count is the number of clock cycles the master will wait before initiating/issuing any transaction.
@@ -15,6 +11,10 @@
 	)
 	(
 		// Users to add ports here
+		input wire [C_M_AXIS_TDATA_WIDTH-1 : 0] DIN_FROM_BRAM,
+        input wire DIN_VALID,
+        input wire last,
+        output wire DIN_ACCEP,
 
 		// User ports ends
 		// Do not modify the ports beyond this line
@@ -34,8 +34,6 @@
 		// TREADY indicates that the slave can accept a transfer in the current cycle.
 		input wire  M_AXIS_TREADY
 	);
-	// Total number of output data                                                 
-	localparam NUMBER_OF_OUTPUT_WORDS = 8;                                               
 	                                                                                     
 	// function called clogb2 that returns an integer which has the                      
 	// value of the ceiling of the log base 2.                                           
@@ -49,9 +47,6 @@
 	// WAIT_COUNT_BITS is the width of the wait counter.                                 
 	localparam integer WAIT_COUNT_BITS = clogb2(C_M_START_COUNT-1);                      
 	                                                                                     
-	// bit_num gives the minimum number of bits needed to address 'depth' size of FIFO.  
-	localparam bit_num  = clogb2(NUMBER_OF_OUTPUT_WORDS);                                
-	                                                                                     
 	// Define the states of state machine                                                
 	// The control state machine oversees the writing of input streaming data to the FIFO,
 	// and outputs the streaming data from the FIFO                                      
@@ -60,16 +55,14 @@
 	                INIT_COUNTER  = 2'b01, // This state initializes the counter, once   
 	                                // the counter reaches C_M_START_COUNT count,        
 	                                // the state machine changes state to SEND_STREAM     
+                                    //
 	                SEND_STREAM   = 2'b10; // In this state the                          
 	                                     // stream data is output through M_AXIS_TDATA   
 	// State variable                                                                    
 	reg [1:0] mst_exec_state;                                                            
-	// Example design FIFO read pointer                                                  
-	reg [bit_num-1:0] read_pointer;                                                      
-
 	// AXI Stream internal signals
 	//wait counter. The master waits for the user defined number of clock cycles before initiating a transfer.
-	reg [WAIT_COUNT_BITS-1 : 0] 	count;
+    reg [WAIT_COUNT_BITS-1: 0]  count;
 	//streaming data valid
 	wire  	axis_tvalid;
 	//streaming data valid delayed by one clock cycle
@@ -105,23 +98,10 @@
 	  else                                                                    
 	    case (mst_exec_state)                                                 
 	      IDLE:                                                               
-	        // The slave starts accepting tdata when                          
-	        // there tvalid is asserted to mark the                           
-	        // presence of valid streaming data                               
-	        //if ( count == 0 )                                                 
-	        //  begin                                                           
-	            mst_exec_state  <= INIT_COUNTER;                              
-	        //  end                                                             
-	        //else                                                              
-	        //  begin                                                           
-	        //    mst_exec_state  <= IDLE;                                      
-	        //  end                                                             
-	                                                                          
+	           mst_exec_state  <= INIT_COUNTER;                              
+	                                                                         
 	      INIT_COUNTER:                                                       
-	        // The slave starts accepting tdata when                          
-	        // there tvalid is asserted to mark the                           
-	        // presence of valid streaming data                               
-	        if ( count == C_M_START_COUNT - 1 )                               
+	       if ( count == C_M_START_COUNT - 1 )                               
 	          begin                                                           
 	            mst_exec_state  <= SEND_STREAM;                               
 	          end                                                             
@@ -132,10 +112,7 @@
 	          end                                                             
 	                                                                          
 	      SEND_STREAM:                                                        
-	        // The example design streaming master functionality starts       
-	        // when the master drives output tdata from the FIFO and the slave
-	        // has finished storing the S_AXIS_TDATA                          
-	        if (tx_done)                                                      
+	       if (tx_done)                                                      
 	          begin                                                           
 	            mst_exec_state <= IDLE;                                       
 	          end                                                             
@@ -147,19 +124,15 @@
 	end                                                                       
 
 
-	//tvalid generation
-	//axis_tvalid is asserted when the control state machine's state is SEND_STREAM and
-	//number of output streaming data is less than the NUMBER_OF_OUTPUT_WORDS.
-	assign axis_tvalid = ((mst_exec_state == SEND_STREAM) && (read_pointer < NUMBER_OF_OUTPUT_WORDS));
-	                                                                                               
-	// AXI tlast generation                                                                        
-	// axis_tlast is asserted number of output streaming data is NUMBER_OF_OUTPUT_WORDS-1          
-	// (0 to NUMBER_OF_OUTPUT_WORDS-1)                                                             
-	assign axis_tlast = (read_pointer == NUMBER_OF_OUTPUT_WORDS-1);                                
-	                                                                                               
-	                                                                                               
+	assign axis_tvalid = ((mst_exec_state == SEND_STREAM) && DIN_VALID;
+	assign axis_tlast = last; //drove by outside
+	assign tx_en = M_AXIS_TREADY && axis_tvalid;   
+    assign DIN_ACCEP = tx_en;
+
 	// Delay the axis_tvalid and axis_tlast signal by one clock cycle                              
 	// to match the latency of M_AXIS_TDATA                                                        
+    // suppose data, tlast arrive at the sample cycle, and valid is compute 
+    // in that cycle as well
 	always @(posedge M_AXIS_ACLK)                                                                  
 	begin                                                                                          
 	  if (!M_AXIS_ARESETN)                                                                         
@@ -174,55 +147,40 @@
 	    end                                                                                        
 	end                                                                                            
 
+    always@(posedge M_AXIS_ACLK)
+    begin
+        if(!M_AXIS_ARESETN)
+        begin
+            tx_done <= 1'b0;
+        end
+        else
+        begin
+            if(last)
+            begin
+                tx_done <= 1'b1;
+            end
+            else
+            begin
+                tx_done <= 1'b0;
+            end
+        end
+    end
 
-	//read_pointer pointer
+    // Streaming output data is read from FIFO       
+    always @( posedge M_AXIS_ACLK )                  
+    begin                                            
+      if(!M_AXIS_ARESETN)                            
+        begin                                        
+          stream_data_out <= 0;                      
+        end                                          
+      else if (tx_en)  
+        begin                                        
+          stream_data_out <= DIN_FROM_BRAM;   
+        end                                          
+      else
+      begin
+          stream_data_out <= 0;
+      end
+    end                                              
 
-	always@(posedge M_AXIS_ACLK)                                               
-	begin                                                                            
-	  if(!M_AXIS_ARESETN)                                                            
-	    begin                                                                        
-	      read_pointer <= 0;                                                         
-	      tx_done <= 1'b0;                                                           
-	    end                                                                          
-	  else                                                                           
-	    if (read_pointer <= NUMBER_OF_OUTPUT_WORDS-1)                                
-	      begin                                                                      
-	        if (tx_en)                                                               
-	          // read pointer is incremented after every read from the FIFO          
-	          // when FIFO read signal is enabled.                                   
-	          begin                                                                  
-	            read_pointer <= read_pointer + 1;                                    
-	            tx_done <= 1'b0;                                                     
-	          end                                                                    
-	      end                                                                        
-	    else if (read_pointer == NUMBER_OF_OUTPUT_WORDS)                             
-	      begin                                                                      
-	        // tx_done is asserted when NUMBER_OF_OUTPUT_WORDS numbers of streaming data
-	        // has been out.                                                         
-	        tx_done <= 1'b1;                                                         
-	      end                                                                        
-	end                                                                              
-
-
-	//FIFO read enable generation 
-
-	assign tx_en = M_AXIS_TREADY && axis_tvalid;   
-	                                                     
-	    // Streaming output data is read from FIFO       
-	    always @( posedge M_AXIS_ACLK )                  
-	    begin                                            
-	      if(!M_AXIS_ARESETN)                            
-	        begin                                        
-	          stream_data_out <= 1;                      
-	        end                                          
-	      else if (tx_en)// && M_AXIS_TSTRB[byte_index]  
-	        begin                                        
-	          stream_data_out <= read_pointer + 32'b1;   
-	        end                                          
-	    end                                              
-
-	// Add user logic here
-
-	// User logic ends
-
-	endmodule
+endmodule

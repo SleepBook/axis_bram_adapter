@@ -1,4 +1,10 @@
-
+//Top Level block for AXI-S to BRAM adapter
+//
+// this module has an axis-slave adn axis-master interfaces
+// to read and write axis stream
+// the lite interface is used to switch R/W mode
+// Internally this adapter has a buffer which matches the width
+// of the bram, both streams read from or write to this buffer
 `timescale 1 ns / 1 ps
 
 	module axis_bram_adapter_v1_0 #
@@ -22,20 +28,20 @@
 
         //customer parameters
         parameter integer BRAM_DEPTH = 9,
-        parameter integer BRAM_WIDTH = 1152
+        parameter integer BRAM_WIDTH_IN_WORD = 36,
+        parameter integer BRAM_WIDTH = C_S00_AXIS_TDATA_WIDTH*BRAM_WIDTH_IN_WORD
+        //which is 1152
 	)
 	(
 		// Users to add ports here
-        output wire bram_clk,
-        output wire bram_en,
-        output wire bram_wen,
-        output wire [BRAM_DEPTH : 0] bram_addr,
-        output wire [BRAM_WIDTH - 1: 0] bram_in,
-        input wire  [BRAM_WIDTH - 1: 0] bram_out,
+        output wire BRAM_CLK,
+        output wire BRAM_EN,
+        output wire BRAM_WEN,
+        output wire [BRAM_DEPTH : 0] BRAM_ADDR,
+        output wire [BRAM_WIDTH - 1: 0] BRAM_IN,
+        input wire  [BRAM_WIDTH - 1: 0] BRAM_OUT,
 
 		// User ports ends
-		// Do not modify the ports beyond this line
-
 
 		// Ports of Axi Slave Bus Interface S00_AXIS
 		input wire  s00_axis_aclk,
@@ -87,103 +93,73 @@
 	endfunction
 
     //how many bit the buf_ptr need
+    //assume the read and write channel has same width
 	localparam ptr_width  = clogb2(BRAM_WIDTH/C_S00_AXIS_TDATA_WIDTH -1);
 
-    
     //User Resources
-    reg [ptr_width -1: 0] buf_ptr;
-    reg [BRAM_WIDTH - 1: 0] buf;
+    
+    //associate with from_axis
+    wire [BRAM_WIDTH_IN_WORD*2 -1 : 0] from_axis_mux_cntl;
+    wire from_axis_valid;
+    wire from_axis_accep;
     wire [C_S00_AXIS_TDATA_WIDTH - 1: 0] axis_out;
-    wire buf_accep;
-    wire axis_out_valid;
-    wire buf_full;
-    reg bram_done;
-    reg bram_en_r;
-    reg bram_wen_r;
-    reg [BRAM_DEPTH-1:0] bram_addr_r;
 
+    //associate with to axis
+    wire [ptr_width-1 : 0] to_axis_mux_cntl;
+    wire to_axis_valid;
+    wire to_axis_accep;
+    wire [C_M00_AXIS_TDATA_WIDTH - 1: 0] axis_in;
 
-    assign bram_clk = s00_axis_aclk;
-    assign bram_out = buffer;
-    assign bram_en = bram_en_r;
-    assign bram_wen_r = bram_wen_r;
-    assign bram_addr = bram_addr_r;
+    //associate with axi-lite
+    wire mode_rw;
+    wire [BRAM_DEPTH - 1 : 0] rd_back_addr;
+    wire [BRAM_DEPTH - 1 : 0] rd_back_sz;
 
-	// Add user logic here
-    // block to feed buffer from income stream
-    always@(posedge s00_axis_aclk)
+    //datapath wires
+    wire [BRAM_WIDTH -1 :0] buf_in;
+    wire [BRAM_WIDTH -1 :0] buf_out;
+
+    //datapath description
+    always@(*)
     begin
-        if(!s00_axis_aresetn)
+        genvar index;
+        generate
+        for(index = 0;index <BRAM_WIDTH_IN_WORD;index = index +1)
         begin
-            buf_ptr <= 0;
-            buffer <= BRAM_WIDTH'b0;
+            case(from_axis_mux_cntl[index*2 + 1:index*2])
+                2'b00, 2'b01: buf_in[index*32+31 : index*32] = buf_in[index*32+31 : index*32];
+                2'b10: buf_in[index*32+31 : index*32] = BRAM_OUT[index*32+31 : index*32];
+                2'b11: buf_in[index*32+31 : index*32] = axis_out;
+            endcase
         end
-        else
-        begin
-            if(axis_out_valid)
-            begin
-                buf_ptr <= buf_ptr + 1;
-                buffer[buf_ptr*C_S00_AXIS_TDATA_WIDTH + C_S00_AXIS_TDATA_WIDTH-1 -: C_S00_AXIS_TDATA_WIDTH ] <= axis_out;
+    endgenerate
 
-                if(buf_ptr == BRAM_WIDTH/C_S00_AXIS_TDATA_WIDTH - 1)
-                begin
-                    buf_ptr <= 0;
-                end
-            end
-        end
-    end
+    assign BRAM_IN = buf_out;
 
     always@(*)
     begin
-        if(buf_ptr == BRAM_WIDTH/C_S00_AXIS_TDATA_WIDTH - 1)
-        begin
-            buf_full = 1'b1;
-            buf_accept = 1'b0;
-        end
-        else if(bram_done == 1'b1)
-        begin
-            buf_accept = 1'b1;
-        end
-        else
-        begin
-            buf_full = 1'b0;
-            buf_accept = 1'b1;
-        end
+        axis_in = buf_out[to_axis_mux_cntl*32+31:to_axis_mux_cntl*32+31];
     end
 
-    //block to write buffer to bram
-    //the interface butween the buf controller is 
-    //buf_full (income wire)
-    //bram_done (outcome reg, single cycle delay
-    always@(posedge s00_axis_aclk)
-    begin
-        if(!s00_axis_aresetn)
-        begin
-            bram_add_r <= 0;
-            bram_en_r <= 1'b0;
-            bram_wen_r <= 1'b0;
-            bram_done <= 1'b0;
-        end
-        else
-        begin
-            if(buf_full)
-            begin
-                bram_en_r <= 1'b1;
-                bram_wen_r <= 1'b1;
-                bram_addr_r <= bram_addr_r + 1;
-                //current assume single cycle write done
-                //can be replaced with other mechanism as well
-                bram_done <= 1'b1;
-            end
-            if(bram_addr_r == BRAM_DEPTH)
-            begin
-                bram_addr_r = 1'b0;
-            end
-        end
-    end
-
-
-	// User logic ends
+    //cntl logics
+    
+    axis_bram_adapter_v1_0_cntl controller(
+        .clk(s00_axis_aclk),
+        .rstn(s00_axis_arestn),
+        .rw(mode_rw),
+        .index_cntl(rd_back_addr),
+        .size_cntl(rd_back_sz),
+        .stream_in_valid(from_stream_valid),
+        .stream_out_accep(to_stream_accep),
+        .from_axis_mux_cntl(from_axis_mux_cntl),
+        .to_axis_mux_cntl(to_axis_mux_cntl),
+        .bram_wen(BRAM_WEN),
+        .bram_en(BRAM_EN),
+        .bram_index(BRAM_ADDR),
+        .stream_out_tlast(m00_axis_tlast)
+    );
+    
+    // User logic ends
 
 
 		parameter integer  32,
@@ -192,8 +168,8 @@
 		.C_S_AXIS_TDATA_WIDTH(C_S00_AXIS_TDATA_WIDTH)
 	) axis_bram_adapter_v1_0_S00_AXIS_inst (
         .DOUT_TO_BRAM(axis_out),
-        .DOUT_VALID(axis_out_valid),
-        .DOUT_ACCEP(buffer_accep),
+        .DOUT_VALID(from_axis_valid),
+        .DOUT_ACCEP(from_axis_accep),
 		.S_AXIS_ACLK(s00_axis_aclk),
 		.S_AXIS_ARESETN(s00_axis_aresetn),
 		.S_AXIS_TREADY(s00_axis_tready),
@@ -214,7 +190,10 @@
 		.M_AXIS_TDATA(m00_axis_tdata),
 		.M_AXIS_TSTRB(m00_axis_tstrb),
 		.M_AXIS_TLAST(m00_axis_tlast),
-		.M_AXIS_TREADY(m00_axis_tready)
+		.M_AXIS_TREADY(m00_axis_tready), 
+        .DIN_FROM_BRAM(axis_in),
+        .DIN_ACCEP(to_axis_accep),
+        .DIN_VALID(to_axis_valid)
 	);
 
 // Instantiation of Axi Bus Interface S02_AXI
@@ -242,6 +221,9 @@
 		.S_AXI_RDATA(s02_axi_rdata),
 		.S_AXI_RRESP(s02_axi_rresp),
 		.S_AXI_RVALID(s02_axi_rvalid),
-		.S_AXI_RREADY(s02_axi_rready)
+		.S_AXI_RREADY(s02_axi_rready),
+        .RW_MODE(mode_rw), 
+        .RD_BACK_SIZE(rd_back_size),
+        .RD_BACK_ADDR(rd_back_addr)
 	);
 	endmodule
