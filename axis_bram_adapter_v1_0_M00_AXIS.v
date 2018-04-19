@@ -11,7 +11,7 @@
 	)
 	(
 		// Users to add ports here
-		input wire [C_M_AXIS_TDATA_WIDTH-1 : 0] DIN_FROM_BRAM,
+		input wire [C_M_AXIS_TDATA_WIDTH-1 : 0] DIN_FROM_BUF,
         input wire DIN_VALID,
         input wire last,
         output wire DIN_ACCEP,
@@ -175,7 +175,7 @@
         end                                          
       else if (tx_en)  
         begin                                        
-          stream_data_out <= DIN_FROM_BRAM;   
+          stream_data_out <= DIN_FROM_BUF;   
         end                                          
       else
       begin
