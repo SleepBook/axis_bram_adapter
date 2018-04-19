@@ -1,4 +1,4 @@
-`timescale 1 ns / 1 ps
+`timescale 1 ns / 100 ps
 
 module M00_module_test;
 
@@ -11,7 +11,7 @@ reg last;
 wire din_accep;
 
 wire axis_valid;
-wire axis_data;
+wire [31 :0] axis_data;
 wire axis_tstrb;
 wire axis_tlast;
 reg axis_ready;
@@ -38,9 +38,21 @@ begin
     rst_n = 0;
     #10 rst_n = 1;
 
-    last = 0;
-    din_from_buf = 32'd0;
-    din_valid = 1'b0;
-    axis_ready = 1'b0;
+    # 400 last = 0;
+    axis_ready = 1;
+    din_valid = 1;
+    #2 din_from_buf = 32'd0;
+    #10 din_from_buf = 32'd1;
+     #10 din_from_buf = 32'd2;
+    
+      #10 din_from_buf = 32'd3;
+       #10 din_from_buf = 32'd4;
+        #10 din_from_buf = 32'd5; din_valid = 0;
+            #5 din_valid = 1;
+         #10 din_from_buf = 32'd6;
+          #10 din_from_buf = 32'd7;
+    
+   
+    $finish;
 end
 endmodule
