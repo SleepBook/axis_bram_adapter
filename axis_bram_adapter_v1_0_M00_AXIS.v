@@ -124,7 +124,7 @@
 	end                                                                       
 
 
-	assign axis_tvalid = ((mst_exec_state == SEND_STREAM) && DIN_VALID;
+	assign axis_tvalid = ((mst_exec_state == SEND_STREAM) && DIN_VALID);
 	assign axis_tlast = last; //drove by outside
 	assign tx_en = M_AXIS_TREADY && axis_tvalid;   
     assign DIN_ACCEP = tx_en;

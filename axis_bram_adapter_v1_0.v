@@ -108,7 +108,7 @@
     wire [ptr_width-1 : 0] to_axis_mux_cntl;
     wire to_axis_valid;
     wire to_axis_accep;
-    wire [C_M00_AXIS_TDATA_WIDTH - 1: 0] axis_in;
+    reg [C_M00_AXIS_TDATA_WIDTH - 1: 0] axis_in; //is actually wire
 
     //associate with axi-lite
     wire mode_rw;
@@ -116,30 +116,69 @@
     wire [BRAM_DEPTH - 1 : 0] rd_back_sz;
 
     //datapath wires
-    wire [BRAM_WIDTH -1 :0] buf_in;
-    wire [BRAM_WIDTH -1 :0] buf_out;
+    //suppose to be wire, but I need to describe them in behavior
+    reg [BRAM_WIDTH -1 :0] buf_in;
+    reg [BRAM_WIDTH -1 :0] buf_out;
 
     //datapath description
-    always@(*)
-    begin
-        genvar index;
-        generate
-        for(index = 0;index <BRAM_WIDTH_IN_WORD;index = index +1)
+    genvar index;
+    generate 
+    for(index = 0;index <BRAM_WIDTH_IN_WORD;index = index +1)
+    begin    
+    always@(*)   
         begin
             case(from_axis_mux_cntl[index*2 + 1:index*2])
-                2'b00, 2'b01: buf_in[index*32+31 : index*32] = buf_in[index*32+31 : index*32];
-                2'b10: buf_in[index*32+31 : index*32] = BRAM_OUT[index*32+31 : index*32];
-                2'b11: buf_in[index*32+31 : index*32] = axis_out;
+                2'b00, 2'b01: buf_in[index*32+31 : index*32] <= buf_in[index*32+31 : index*32];
+                2'b10: buf_in[index*32+31 : index*32] <= BRAM_OUT[index*32+31 : index*32];
+                2'b11: buf_in[index*32+31 : index*32] <= axis_out;
             endcase
         end
+    end
     endgenerate
 
     assign BRAM_IN = buf_out;
 
     always@(*)
     begin
-        axis_in = buf_out[to_axis_mux_cntl*32+31:to_axis_mux_cntl*32+31];
-    end
+        case(to_axis_mux_cntl)
+            6'd0: axis_in <= buf_out[0*32 +31 : 0*32];
+        6'd1: axis_in <= buf_out[1*32 +31 : 1*32];
+        6'd2: axis_in <= buf_out[2*32 +31 : 2*32];
+        6'd3: axis_in <= buf_out[3*32 +31 : 3*32];
+        6'd4: axis_in <= buf_out[4*32 +31 : 4*32];
+        6'd5: axis_in <= buf_out[5*32 +31 : 5*32];
+        6'd6: axis_in <= buf_out[6*32 +31 : 6*32];
+        6'd7: axis_in <= buf_out[7*32 +31 : 7*32];
+        6'd8: axis_in <= buf_out[8*32 +31 : 8*32];
+        6'd9: axis_in <= buf_out[9*32 +31 : 9*32];
+        6'd10: axis_in <= buf_out[10*32 +31 : 10*32];
+        6'd11: axis_in <= buf_out[11*32 +31 : 11*32];
+        6'd12: axis_in <= buf_out[12*32 +31 : 12*32];
+        6'd13: axis_in <= buf_out[13*32 +31 : 13*32];
+        6'd14: axis_in <= buf_out[14*32 +31 : 14*32];
+        6'd15: axis_in <= buf_out[15*32 +31 : 15*32];
+        6'd16: axis_in <= buf_out[16*32 +31 : 16*32];
+        6'd17: axis_in <= buf_out[17*32 +31 : 17*32];
+        6'd18: axis_in <= buf_out[18*32 +31 : 18*32];
+        6'd19: axis_in <= buf_out[19*32 +31 : 19*32];
+        6'd20: axis_in <= buf_out[20*32 +31 : 20*32];
+        6'd21: axis_in <= buf_out[21*32 +31 : 21*32];
+        6'd22: axis_in <= buf_out[22*32 +31 : 22*32];
+        6'd23: axis_in <= buf_out[23*32 +31 : 23*32];
+        6'd24: axis_in <= buf_out[24*32 +31 : 24*32];
+        6'd25: axis_in <= buf_out[25*32 +31 : 25*32];
+        6'd26: axis_in <= buf_out[26*32 +31 : 26*32];
+        6'd27: axis_in <= buf_out[27*32 +31 : 27*32];
+        6'd28: axis_in <= buf_out[28*32 +31 : 28*32];
+        6'd29: axis_in <= buf_out[29*32 +31 : 29*32];
+        6'd30: axis_in <= buf_out[30*32 +31 : 30*32];
+        6'd31: axis_in <= buf_out[31*32 +31 : 31*32];
+        6'd32: axis_in <= buf_out[32*32 +31 : 32*32];
+        6'd33: axis_in <= buf_out[33*32 +31 : 33*32];
+        6'd34: axis_in <= buf_out[34*32 +31 : 34*32];
+        6'd35: axis_in <= buf_out[35*32 +31 : 35*32];
+        endcase
+     end
 
     //cntl logics
     
@@ -162,7 +201,6 @@
     // User logic ends
 
 
-		parameter integer  32,
 // Instantiation of Axi Bus Interface S00_AXIS
 	axis_bram_adapter_v1_0_S00_AXIS # ( 
 		.C_S_AXIS_TDATA_WIDTH(C_S00_AXIS_TDATA_WIDTH)

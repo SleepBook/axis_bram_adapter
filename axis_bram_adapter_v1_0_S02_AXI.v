@@ -88,7 +88,7 @@
         //Added ports
         output wire RW_MODE, 
         output wire [C_S_AXI_DATA_WIDTH	-1:0] RD_BACK_ADDR, 
-        output wire [C_S_AXI_DATA_WIDTH	-1:0] RD_BACK_SIZE, 
+        output wire [C_S_AXI_DATA_WIDTH	-1:0] RD_BACK_SIZE
 	);
 
 	// AXI4LITE signals
