@@ -27,7 +27,7 @@
 		input wire  S_AXIS_TVALID,
 
         //customer IO
-        output wire [C_S_AXIS_TDATA_WIDTH-1: 0] DOUT_TO_BRAM,
+        output wire [C_S_AXIS_TDATA_WIDTH-1: 0] DOUT_TO_BUF,
         output wire DOUT_VALID,
         input wire DOUT_ACCEP
 	);
@@ -61,7 +61,7 @@
     wire [C_S_AXIS_TDATA_WIDTH-1: 0] dout;
     wire out_en;
 
-    assign DOUT_TO_BRAM = dout;
+    assign DOUT_TO_BUF = dout;
     assign DOUT_VALID = out_en;
     
 
