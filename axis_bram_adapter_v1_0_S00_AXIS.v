@@ -2,28 +2,16 @@
 
 	module axis_bram_adapter_v1_0_S00_AXIS #
 	(
-		// AXI4Stream sink: Data Width
 		parameter integer C_S_AXIS_TDATA_WIDTH	= 32
 	)
 	(
-		// Users to add ports here
-
-		// User ports ends
-		// Do not modify the ports beyond this line
-
-		// AXI4Stream sink: Clock
 		input wire  S_AXIS_ACLK,
-		// AXI4Stream sink: Reset
 		input wire  S_AXIS_ARESETN,
-		// Ready to accept data in
 		output wire  S_AXIS_TREADY,
-		// Data in
 		input wire [C_S_AXIS_TDATA_WIDTH-1 : 0] S_AXIS_TDATA,
 		// Byte qualifier
 		input wire [(C_S_AXIS_TDATA_WIDTH/8)-1 : 0] S_AXIS_TSTRB,
-		// Indicates boundary of last packet
 		input wire  S_AXIS_TLAST,
-		// Data is in valid
 		input wire  S_AXIS_TVALID,
 
         //customer IO
@@ -32,9 +20,8 @@
         input wire DOUT_ACCEP
 	);
 	// function called clogb2 that returns an integer which has the 
-		// Total number of input data, seems only has something to do with fifo size
 	localparam NUMBER_OF_INPUT_WORDS  = 8;
-	// bit_num gives the minimum number of bits needed to address 'NUMBER_OF_INPUT_WORDS' size of FIFO.
+
 	// Define the states of state machine
 	// The control state machine oversees the writing of input streaming data to the FIFO,
 	// and outputs the streaming data from the FIFO
@@ -42,35 +29,25 @@
 
 	                WRITE_FIFO  = 1'b1; // In this state FIFO is written with the
 	                                    // input stream data S_AXIS_TDATA 
-	wire  	axis_tready;
+	wire axis_tready;
 	// State variable
 	reg mst_exec_state;  
-	// FIFO implementation signals
-	genvar byte_index;     
-	// FIFO write enable
-	wire fifo_wren;
-	// FIFO full flag
-	reg fifo_full_flag;
-	// FIFO write pointer
-	reg [bit_num-1:0] write_pointer;
-	// sink has accepted all the streaming data and stored in FIFO
-	  reg writes_done;
-	// I/O Connections assignments
-    //
-    //customer wire reg
-    wire [C_S_AXIS_TDATA_WIDTH-1: 0] dout;
-    wire out_en;
+
+	reg writes_done;
+
+    reg [C_S_AXIS_TDATA_WIDTH-1: 0] dout;
+    wire w_en;
+    reg w_en_delay;
 
     assign DOUT_TO_BUF = dout;
-    assign DOUT_VALID = out_en;
+    assign DOUT_VALID = w_en_delay;
     
+	assign S_AXIS_TREADY = axis_tready;
 
-	assign S_AXIS_TREADY	= axis_tready;
 	// Control state machine implementation
 	always @(posedge S_AXIS_ACLK) 
 	begin  
 	  if (!S_AXIS_ARESETN) 
-	  // Synchronous reset (active low)
 	    begin
 	      mst_exec_state <= IDLE;
 	    end  
@@ -104,34 +81,40 @@
 
 	    endcase
 	end
+
 	// AXI Streaming Sink 
-	// 
-	// The example design sink is always ready to accept the S_AXIS_TDATA  until
-	// the FIFO is not filled with NUMBER_OF_INPUT_WORDS number of input words.
-    // wouldn't generate a deadlock here? ready shouldn't rely on valid?
 	assign axis_tready = ((mst_exec_state == WRITE_FIFO) && DOUT_ACCEP);
+	assign w_en = S_AXIS_TVALID && axis_tready;
+
+    always@(posedge S_AXIS_ACLK)
+    begin
+        w_en_delay <= w_en;
+    end
 
 	always@(posedge S_AXIS_ACLK)
 	begin
 	  if(!S_AXIS_ARESETN)
 	    begin
 	      writes_done <= 1'b0;
+          dout <= 0;
 	    end  
 	  else
         begin
-            writes_done <= 1'b0;
-        if(DOUT_ACCEP == 0 || S_AXIS_TLAST)
-            begin
-                writes_done <= 1'b1;
-            end
+            case({w_en, S_AXIS_TLAST})
+                2'b10:begin
+                    dout <= S_AXIS_DATA;
+                    write_done <= 1'b0;
+                end
+                2'b11:begin
+                    dout <= S_AXIS_DATA;
+                    write_done <= 1'b1;
+                end
+                default:begin
+                    dout <= 0;
+                    write_done <= 1'b0;
+                end
+            endcase
         end
     end
 
-    
-	assign DOUT_VALID = S_AXIS_TVALID && axis_tready;
-
-	// Add user logic here
-
-	// User logic ends
-
-	endmodule
+endmodule
