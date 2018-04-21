@@ -31,7 +31,9 @@ reg [5:0] cnt;
 reg ptr_end;
 reg ptr_start;
 reg ptr_end_by_one;
+reg rw_pre;
 
+//the resetting logic may have some issue
 always@(posedge clk)
 begin
     if(!rstn)
@@ -40,7 +42,7 @@ begin
     end
     else
     begin
-        if((rw&&stream_in_valid) || (!rw && stream_out_accep))
+        if(((rw&&stream_in_valid) || (!rw && stream_out_accep)) && (rw == rw_pre))
         begin
             cnt <= cnt + 1;
             if(cnt == BRAM_WIDTH_IN_WORD - 1)
@@ -48,6 +50,27 @@ begin
                 cnt <= 6'b0;
             end
         end
+        else if (rw ^ rw_pre)
+        begin
+            cnt <= 6'd0;
+        end
+        else
+        begin
+            cnt <= cnt;
+        end
+    end
+end
+
+
+always@(posedge clk)
+begin
+    if(!rstn)
+    begin
+        rw_pre <= 1'b0;
+    end
+    else
+    begin
+        rw_pre <= rw;
     end
 end
 
@@ -94,17 +117,22 @@ begin
     end
     else
     begin
-        casex({rw, ptr_end, ptr_end_by_one, stream_in_valid, stream_out_accep})
-            5'b1101x: begin
+        casex({rw, ptr_end, ptr_end_by_one, stream_in_valid, stream_out_accep, (rw^rw_pre)})
+            6'b1101x0: begin
                 bram_en <= 1'b1;
                 bram_wen <= 1'b1;
                 bram_index <= bram_index + 1;
             end
             //read from bram
-            5'b001x1: begin
+            6'b001x10: begin
                 bram_en <= 1'b1;
                 bram_wen <= 1'b0;
                 bram_index <= bram_index + 1;
+            end
+            6'bxxxxx1: begin
+                bram_en <= bram_en;
+                bram_wen <= bram_wen;
+                bram_index <= 0;
             end
             default:begin
                 bram_en <= 1'b0;

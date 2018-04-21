@@ -55,14 +55,31 @@ begin
     bram_start_addr = 0;
     bram_end_addr = 15;
 
-
     rst_n = 0;
     #15 rst_n = 1;
 
-    //test write to controller 
-     rw  = 1;
-    input_valid = 0;
-#15 input_valid = 1;
+//    //test on normal write
+//    rw  = 1;
+//    input_valid = 0;
+//    #15 input_valid = 1;
+//    
+//    //intermittent write
+//    //#320 input_valid = 0;
+//    //#300 input_valid = 1;
+//
+//    #355 input_valid = 0;
+//    #20 input_valid = 1;
+//
+//    //written test done
+//
+    //normal read operations, start to read
+    rw = 0;
+    output_accep = 0;
+    bram_start_addr = 6; 
+#15 output_accep = 1;
+
+
+
 //#300 rw = 0;
  // output_accep = 1;
 
