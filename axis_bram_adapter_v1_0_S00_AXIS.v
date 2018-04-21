@@ -1,5 +1,4 @@
 `timescale 1 ns / 1 ps
-
 	module axis_bram_adapter_v1_0_S00_AXIS #
 	(
 		parameter integer C_S_AXIS_TDATA_WIDTH	= 32
@@ -19,9 +18,6 @@
         output wire DOUT_VALID,
         input wire DOUT_ACCEP
 	);
-	// function called clogb2 that returns an integer which has the 
-	localparam NUMBER_OF_INPUT_WORDS  = 8;
-
 	// Define the states of state machine
 	// The control state machine oversees the writing of input streaming data to the FIFO,
 	// and outputs the streaming data from the FIFO
@@ -33,7 +29,7 @@
 	// State variable
 	reg mst_exec_state;  
 
-	reg writes_done;
+	reg write_done;
 
     reg [C_S_AXIS_TDATA_WIDTH-1: 0] dout;
     wire w_en;
@@ -45,7 +41,7 @@
 	assign S_AXIS_TREADY = axis_tready;
 
 	// Control state machine implementation
-	always @(posedge S_AXIS_ACLK) 
+	always@(posedge S_AXIS_ACLK) 
 	begin  
 	  if (!S_AXIS_ARESETN) 
 	    begin
@@ -68,7 +64,7 @@
 	      WRITE_FIFO: 
 	        // When the sink has accepted all the streaming input data,
 	        // the interface swiches functionality to a streaming master
-	        if (writes_done)
+	        if (w_en &&)
 	          begin
 	            mst_exec_state <= IDLE;
 	          end
@@ -95,18 +91,28 @@
 	begin
 	  if(!S_AXIS_ARESETN)
 	    begin
-	      writes_done <= 1'b0;
+	      write_done <= 1'b0;
           dout <= 0;
 	    end  
 	  else
         begin
+           // case(w_en)
+           //     1'b0:begin
+           //         dout <= 0;
+           //         write_done <= 1'b0;
+           //     end
+           //     1'b1:begin
+           //         dout <= S_AXIS_TDATA;
+           //         write_done <= 1'b0;
+           //     end
+           // endcase
             case({w_en, S_AXIS_TLAST})
                 2'b10:begin
-                    dout <= S_AXIS_DATA;
+                    dout <= S_AXIS_TDATA;
                     write_done <= 1'b0;
                 end
                 2'b11:begin
-                    dout <= S_AXIS_DATA;
+                    dout <= S_AXIS_TDATA;
                     write_done <= 1'b1;
                 end
                 default:begin
