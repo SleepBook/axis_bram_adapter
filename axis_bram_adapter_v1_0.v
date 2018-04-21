@@ -37,7 +37,7 @@
         output wire BRAM_CLK,
         output wire BRAM_EN,
         output wire BRAM_WEN,
-        output wire [BRAM_DEPTH : 0] BRAM_ADDR,
+        output wire [BRAM_DEPTH - 1 : 0] BRAM_ADDR,
         output wire [BRAM_WIDTH - 1: 0] BRAM_IN,
         input wire  [BRAM_WIDTH - 1: 0] BRAM_OUT,
 

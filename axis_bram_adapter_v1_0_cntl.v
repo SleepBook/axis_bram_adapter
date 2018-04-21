@@ -3,6 +3,7 @@
 module axis_bram_adapter_v1_0_cntl
 (
     parameter integer BRAM_ADDR_LENGTH = 9,
+    parameter integer TO_AXIS_MUX_CNTL_BITS = 6,
     parameter integer BRAM_WIDTH_IN_WORD = 36
 )
 (
@@ -14,7 +15,7 @@ module axis_bram_adapter_v1_0_cntl
     input wire stream_in_valid,
     input wire stream_out_accep,
     output wire[BRAM_WIDTH_IN_WORD*2-1:0] from_axis_mux_cntl,
-    output wire to_axis_mux_cntl,
+    output wire[TO_AXIS_MUX_CNTL_BITS - 1:0]  to_axis_mux_cntl,
     output reg bram_wen,
     output reg bram_en,
     output reg [BRAM_ADDR_LENGTH-1:0] bram_index,
