@@ -51,7 +51,7 @@ begin
         #10 axis_data = 32'd5; 
         axis_tlast = 1;
             
-         #10 axis_data = 32'd6;
+         #10 axis_data = 32'd6; axis_valid = 0;
           #10 axis_data = 32'd7;
     
    
