@@ -29,7 +29,7 @@
 	// State variable
 	reg mst_exec_state;  
 
-	reg write_done;
+	//reg write_done;
 
     reg [C_S_AXIS_TDATA_WIDTH-1: 0] dout;
     wire w_en;
@@ -64,7 +64,7 @@
 	      WRITE_FIFO: 
 	        // When the sink has accepted all the streaming input data,
 	        // the interface swiches functionality to a streaming master
-	        if (w_en &&)
+	        if (w_en && S_AXIS_TLAST)
 	          begin
 	            mst_exec_state <= IDLE;
 	          end
@@ -91,7 +91,7 @@
 	begin
 	  if(!S_AXIS_ARESETN)
 	    begin
-	      write_done <= 1'b0;
+	      //write_done <= 1'b0;
           dout <= 0;
 	    end  
 	  else
@@ -109,15 +109,15 @@
             case({w_en, S_AXIS_TLAST})
                 2'b10:begin
                     dout <= S_AXIS_TDATA;
-                    write_done <= 1'b0;
+                   // write_done <= 1'b0;
                 end
                 2'b11:begin
                     dout <= S_AXIS_TDATA;
-                    write_done <= 1'b1;
+                    //write_done <= 1'b1;
                 end
                 default:begin
                     dout <= 0;
-                    write_done <= 1'b0;
+                    //write_done <= 1'b0;
                 end
             endcase
         end
