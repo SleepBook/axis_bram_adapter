@@ -1,6 +1,6 @@
 `timescale 1 ns /1 ps
 
-module axis_bram_adapter_v1_0_cntl
+module axis_bram_adapter_v1_0_cntl #
 (
     parameter integer BRAM_ADDR_LENGTH = 9,
     parameter integer TO_AXIS_MUX_CNTL_BITS = 6,
@@ -14,12 +14,17 @@ module axis_bram_adapter_v1_0_cntl
     input wire[BRAM_ADDR_LENGTH-1:0] size_cntl,
     input wire stream_in_valid,
     input wire stream_out_accep,
-    output wire[BRAM_WIDTH_IN_WORD*2-1:0] from_axis_mux_cntl,
-    output wire[TO_AXIS_MUX_CNTL_BITS - 1:0]  to_axis_mux_cntl,
+    output reg[BRAM_WIDTH_IN_WORD*2-1:0] from_axis_mux_cntl,
+    output reg[TO_AXIS_MUX_CNTL_BITS - 1:0]  to_axis_mux_cntl,
     output reg bram_wen,
     output reg bram_en,
     output reg [BRAM_ADDR_LENGTH-1:0] bram_index,
-    output reg stream_out_tlast
+    output reg stream_out_tlast,
+    //debug ports
+    output reg[5:0] cnt,
+    output wire ptr_end,
+    output wire ptr_start,
+    output wire ptr_end_by_one
 );
 
 reg [5:0] cnt;
@@ -34,16 +39,19 @@ begin
         cnt <= 6'b0;
     end
     else
+    begin
         if((rw&&stream_in_valid) || (!rw && stream_out_accep))
         begin
             cnt <= cnt + 1;
-            if(cnt == BRAM_WIDTH_IN_WORD)
+            if(cnt == BRAM_WIDTH_IN_WORD - 1)
             begin
                 cnt <= 6'b0;
             end
         end
     end
 end
+
+
 
 always@(*)
 begin
@@ -56,7 +64,7 @@ begin
         ptr_start = 1'b0;
     end
 
-    if(cnt == BRAM_WIDTH_IN_WORD - 1)
+    if(cnt == BRAM_WIDTH_IN_WORD - 2)
     begin
         ptr_end_by_one = 1'b1;
     end
@@ -65,7 +73,7 @@ begin
         ptr_end_by_one = 1'b0;
     end
 
-    if(cnt == BRAM_WIDTH_IN_WORD)
+    if(cnt == BRAM_WIDTH_IN_WORD - 1)
     begin
         ptr_end = 1'b1;
     end
@@ -86,13 +94,14 @@ begin
     end
     else
     begin
-        case({rw, ptr_start, ptr_end, stream_in_valid, stream_out_accep})
-            5'b11011, 5'b11010: begin
+        casex({rw, ptr_end, ptr_end_by_one, stream_in_valid, stream_out_accep})
+            5'b1101x: begin
                 bram_en <= 1'b1;
                 bram_wen <= 1'b1;
                 bram_index <= bram_index + 1;
             end
-            5'b00101,5'b00111: begin
+            //read from bram
+            5'b001x1: begin
                 bram_en <= 1'b1;
                 bram_wen <= 1'b0;
                 bram_index <= bram_index + 1;
@@ -106,6 +115,7 @@ begin
     end
 end
 
+
 always@(posedge clk)
 begin
     if(!rstn)
@@ -114,7 +124,7 @@ begin
     end
     else 
     begin
-        if(bram_index == size_cntl && ptr_end_by_one)
+        if((bram_index == size_cntl) && ptr_end_by_one)
         begin
             stream_out_tlast <= 1'b1;
         end
@@ -130,26 +140,47 @@ end
 //low bit: 0 bram, 1 axis
 always@(*)
 begin
-    genver index;
-    generate
-    for(index = 0;index<BRAM_WIDTH_IN_WORD;index = index + 1)
-    begin
-        if(ptr_end)
-        begin
-            from_axis_mux_cntl[index*2+1:index*2] = 2'b10;
-        end
-        else if(index == cnt && rw && from_axis_valid)
-        begin
-            from_axis_mux_cntl[index*2+1:index*2] = 2'b11;
-        end
-        else
-        begin
-            from_axis_mux_cntl[index*2+1:index*2] = 2'b00;
-        end
-    end
-    endgenerate
+    case({cnt,rw})
+        7'd1: from_axis_mux_cntl <= 72'b110000000000000000000000000000000000000000000000000000000000000000000000;
+        7'd3: from_axis_mux_cntl <= 72'b001100000000000000000000000000000000000000000000000000000000000000000000;
+        7'd5: from_axis_mux_cntl <= 72'b000011000000000000000000000000000000000000000000000000000000000000000000;
+        7'd7: from_axis_mux_cntl <= 72'b000000110000000000000000000000000000000000000000000000000000000000000000;
+        7'd9: from_axis_mux_cntl <= 72'b000000001100000000000000000000000000000000000000000000000000000000000000;
+        7'd11: from_axis_mux_cntl <= 72'b000000000011000000000000000000000000000000000000000000000000000000000000;
+        7'd13: from_axis_mux_cntl <= 72'b000000000000110000000000000000000000000000000000000000000000000000000000;
+        7'd15: from_axis_mux_cntl <= 72'b000000000000001100000000000000000000000000000000000000000000000000000000;
+        7'd17: from_axis_mux_cntl <= 72'b000000000000000011000000000000000000000000000000000000000000000000000000;
+        7'd19: from_axis_mux_cntl <= 72'b000000000000000000110000000000000000000000000000000000000000000000000000;
+        7'd21: from_axis_mux_cntl <= 72'b000000000000000000001100000000000000000000000000000000000000000000000000;
+        7'd23: from_axis_mux_cntl <= 72'b000000000000000000000011000000000000000000000000000000000000000000000000;
+        7'd25: from_axis_mux_cntl <= 72'b000000000000000000000000110000000000000000000000000000000000000000000000;
+        7'd27: from_axis_mux_cntl <= 72'b000000000000000000000000001100000000000000000000000000000000000000000000;
+        7'd29: from_axis_mux_cntl <= 72'b000000000000000000000000000011000000000000000000000000000000000000000000;
+        7'd31: from_axis_mux_cntl <= 72'b000000000000000000000000000000110000000000000000000000000000000000000000;
+        7'd33: from_axis_mux_cntl <= 72'b000000000000000000000000000000001100000000000000000000000000000000000000;
+        7'd35: from_axis_mux_cntl <= 72'b000000000000000000000000000000000011000000000000000000000000000000000000;
+        7'd37: from_axis_mux_cntl <= 72'b000000000000000000000000000000000000110000000000000000000000000000000000;
+        7'd39: from_axis_mux_cntl <= 72'b000000000000000000000000000000000000001100000000000000000000000000000000;
+        7'd41: from_axis_mux_cntl <= 72'b000000000000000000000000000000000000000011000000000000000000000000000000;
+        7'd43: from_axis_mux_cntl <= 72'b000000000000000000000000000000000000000000110000000000000000000000000000;
+        7'd45: from_axis_mux_cntl <= 72'b000000000000000000000000000000000000000000001100000000000000000000000000;
+        7'd47: from_axis_mux_cntl <= 72'b000000000000000000000000000000000000000000000011000000000000000000000000;
+        7'd49: from_axis_mux_cntl <= 72'b000000000000000000000000000000000000000000000000110000000000000000000000;
+        7'd51: from_axis_mux_cntl <= 72'b000000000000000000000000000000000000000000000000001100000000000000000000;
+        7'd53: from_axis_mux_cntl <= 72'b000000000000000000000000000000000000000000000000000011000000000000000000;
+        7'd55: from_axis_mux_cntl <= 72'b000000000000000000000000000000000000000000000000000000110000000000000000;
+        7'd57: from_axis_mux_cntl <= 72'b000000000000000000000000000000000000000000000000000000001100000000000000;
+        7'd59: from_axis_mux_cntl <= 72'b000000000000000000000000000000000000000000000000000000000011000000000000;
+        7'd61: from_axis_mux_cntl <= 72'b000000000000000000000000000000000000000000000000000000000000110000000000;
+        7'd63: from_axis_mux_cntl <= 72'b000000000000000000000000000000000000000000000000000000000000001100000000;
+        7'd65: from_axis_mux_cntl <= 72'b000000000000000000000000000000000000000000000000000000000000000011000000;
+        7'd67: from_axis_mux_cntl <= 72'b000000000000000000000000000000000000000000000000000000000000000000110000;
+        7'd69: from_axis_mux_cntl <= 72'b000000000000000000000000000000000000000000000000000000000000000000001100;
+        7'd71: from_axis_mux_cntl <= 72'b000000000000000000000000000000000000000000000000000000000000000000000011;
+        7'd70: from_axis_mux_cntl <= 72'b101010101010101010101010101010101010101010101010101010101010101010101010;
+        default: from_axis_mux_cntl <= 72'b000000000000000000000000000000000000000000000000000000000000000000000000;
+    endcase
 end
-
 
 //stream out buf cntl
 always@(*)

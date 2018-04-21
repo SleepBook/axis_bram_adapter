@@ -21,6 +21,11 @@ wire [71:0] in_mux_cntl;
 wire [5:0]  out_mux_cntl;
 wire last;
 
+//debug ports output
+wire[5:0] count;
+wire endw;
+wire startw;
+wire endb1w;
 
 axis_bram_adapter_v1_0_cntl test(
     .clk(clk),
@@ -35,7 +40,11 @@ axis_bram_adapter_v1_0_cntl test(
     .bram_wen(bram_wen),
     .bram_en(bram_en),
     .bram_index(bram_addr),
-    .stream_out_tlast(last)
+    .stream_out_tlast(last),
+    .cnt(count),
+    .ptr_end(endw),
+    .ptr_start(startw),
+    .ptr_end_by_one(endb1w)
 );
 
 
@@ -43,16 +52,19 @@ axis_bram_adapter_v1_0_cntl test(
 initial 
 begin
     clk = 0;
-    rst_n = 0;
-    #10 rst_n = 1;
-
-    //test write to controller 
     bram_start_addr = 0;
     bram_end_addr = 15;
 
-    rw  = 1;
+
+    rst_n = 0;
+    #15 rst_n = 1;
+
+    //test write to controller 
+     rw  = 1;
     input_valid = 0;
 #15 input_valid = 1;
+//#300 rw = 0;
+ // output_accep = 1;
 
 //    
 //    axis_valid = 1;

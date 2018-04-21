@@ -205,7 +205,7 @@
 	axis_bram_adapter_v1_0_S00_AXIS # ( 
 		.C_S_AXIS_TDATA_WIDTH(C_S00_AXIS_TDATA_WIDTH)
 	) axis_bram_adapter_v1_0_S00_AXIS_inst (
-        .DOUT_TO_BRAM(axis_out),
+        .DOUT_TO_BUF(axis_out),
         .DOUT_VALID(from_axis_valid),
         .DOUT_ACCEP(from_axis_accep),
 		.S_AXIS_ACLK(s00_axis_aclk),
