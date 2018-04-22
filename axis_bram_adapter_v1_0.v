@@ -229,7 +229,7 @@
 		.M_AXIS_TSTRB(m00_axis_tstrb),
 		.M_AXIS_TLAST(m00_axis_tlast),
 		.M_AXIS_TREADY(m00_axis_tready), 
-        .DIN_FROM_BRAM(axis_in),
+        .DIN_FROM_BUF(axis_in),
         .DIN_ACCEP(to_axis_accep),
         .DIN_VALID(to_axis_valid)
 	);
@@ -264,4 +264,4 @@
         .RD_BACK_SIZE(rd_back_size),
         .RD_BACK_ADDR(rd_back_addr)
 	);
-	endmodule
+endmodule
