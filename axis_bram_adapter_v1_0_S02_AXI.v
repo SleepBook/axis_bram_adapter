@@ -8,10 +8,7 @@
 
 	module axis_bram_adapter_v1_0_S02_AXI #
 	(
-		// Users to add parameters here
-
-		// User parameters ends
-		// Do not modify the parameters beyond this line
+        parameter integer BRAM_DEPTH = 9,
 
 		// Width of S_AXI data bus
 		parameter integer C_S_AXI_DATA_WIDTH	= 32,
@@ -87,8 +84,8 @@
         
         //Added ports
         output wire RW_MODE, 
-        output wire [C_S_AXI_DATA_WIDTH	-1:0] RD_BACK_ADDR, 
-        output wire [C_S_AXI_DATA_WIDTH	-1:0] RD_BACK_SIZE
+        output wire [BRAM_DEPTH	-1:0] RD_BACK_ADDR, 
+        output wire [BRAM_DEPTH	-1:0] RD_BACK_SIZE
 	);
 
 	// AXI4LITE signals
@@ -453,8 +450,8 @@
 
 	// Add user logic here
     assign RW_MODE = slv_reg0[0];
-    assign RD_BACK_ADDR = slv_reg1;
-    assign RD_BACK_SIZE = slv_reg2;
+    assign RD_BACK_ADDR = slv_reg1[BRAM_DEPTH-1:0];
+    assign RD_BACK_SIZE = slv_reg2[BRAM_DEPTH-1:0];
 
 
 	// User logic ends
