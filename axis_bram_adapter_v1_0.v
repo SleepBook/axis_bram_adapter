@@ -198,7 +198,9 @@
         .bram_wen(BRAM_WEN),
         .bram_en(BRAM_EN),
         .bram_index(BRAM_ADDR),
-        .stream_out_tlast(internal_m_tlast)
+        .stream_out_tlast(internal_m_tlast),
+        .stream_out_valid(to_axis_valid),
+        .stream_in_accep(from_axis_accep)
     );
     
     // User logic ends

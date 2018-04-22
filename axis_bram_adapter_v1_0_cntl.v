@@ -14,6 +14,8 @@ module axis_bram_adapter_v1_0_cntl #
     input wire[BRAM_ADDR_LENGTH-1:0] size_cntl,
     input wire stream_in_valid,
     input wire stream_out_accep,
+    output wire stream_in_accep,
+    output wire stream_out_valid,
     output reg[BRAM_WIDTH_IN_WORD*2-1:0] from_axis_mux_cntl,
     output reg[TO_AXIS_MUX_CNTL_BITS - 1:0]  to_axis_mux_cntl,
     output reg bram_wen,
@@ -32,6 +34,10 @@ reg ptr_end;
 reg ptr_start;
 reg ptr_end_by_one;
 reg rw_pre;
+
+//current design the buffer never stalls
+assign stream_in_accep = rw;
+assign stream_out_valid = !rw;
 
 //the resetting logic may have some issue
 always@(posedge clk)
