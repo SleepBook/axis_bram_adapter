@@ -9,12 +9,6 @@
 
 	module axis_bram_adapter_v1_0 #
 	(
-		// Users to add parameters here
-
-		// User parameters ends
-		// Do not modify the parameters beyond this line
-
-
 		// Parameters of Axi Slave Bus Interface S00_AXIS
 		parameter integer C_S00_AXIS_TDATA_WIDTH	= 32,
 
@@ -27,21 +21,19 @@
 		parameter integer C_S02_AXI_ADDR_WIDTH	= 5,
 
         //customer parameters
-        parameter integer BRAM_DEPTH = 9,
+        parameter integer BRAM_DEPTH = 12,
         parameter integer BRAM_WIDTH_IN_WORD = 36,
         parameter integer BRAM_WIDTH = C_S00_AXIS_TDATA_WIDTH*BRAM_WIDTH_IN_WORD
         //which is 1152
 	)
 	(
-		// Users to add ports here
+        //bram wires
         output wire BRAM_CLK,
         output wire BRAM_EN,
         output wire BRAM_WEN,
         output wire [BRAM_DEPTH - 1 : 0] BRAM_ADDR,
-        output wire [BRAM_WIDTH - 1: 0] BRAM_IN,
-        input wire  [BRAM_WIDTH - 1: 0] BRAM_OUT,
-
-		// User ports ends
+        output wire [BRAM_WIDTH - 1 : 0] BRAM_IN,
+        input wire  [BRAM_WIDTH - 1 : 0] BRAM_OUT,
 
 		// Ports of Axi Slave Bus Interface S00_AXIS
 		input wire  s00_axis_aclk,
@@ -91,101 +83,97 @@
 	      bit_depth = bit_depth >> 1;
 	  end
 	endfunction
-
-    //how many bit the buf_ptr need
     //assume the read and write channel has same width
-	localparam ptr_width  = clogb2(BRAM_WIDTH/C_S00_AXIS_TDATA_WIDTH -1);
-
-    assign BRAM_CLK = s00_axis_aclk;
-    //User Resources
-    
+	localparam ptr_width  = clogb2(BRAM_WIDTH_IN_WORD);
+    //Internal Linking (User Resources)
     //associate with from_axis
     wire [BRAM_WIDTH_IN_WORD*2 -1 : 0] from_axis_mux_cntl;
     wire from_axis_valid;
     wire from_axis_accep;
-    wire [C_S00_AXIS_TDATA_WIDTH - 1: 0] axis_out;
+    wire [C_S00_AXIS_TDATA_WIDTH - 1: 0] from_axis_data;
 
     //associate with to axis
     wire [ptr_width-1 : 0] to_axis_mux_cntl;
     wire to_axis_valid;
     wire to_axis_accep;
-    reg [C_M00_AXIS_TDATA_WIDTH - 1: 0] axis_in; //is actually wire
-    wire internal_m_tlast;//forward the cntl tlast through master axis interface
+    reg [C_M00_AXIS_TDATA_WIDTH - 1: 0] to_axis_data; //is actually wire
+    wire to_axis_tlast;//forward the cntl tlast through master axis interface
 
     //associate with axi-lite
     wire mode_rw;
-
     wire [BRAM_DEPTH-1 : 0] rd_back_addr;
     wire [BRAM_DEPTH-1 : 0] rd_back_sz;
 
-    //datapath wires
-    //suppose to be wire, but I need to describe them in behavior
-    reg [BRAM_WIDTH -1 :0] buffer;
-    //reg [BRAM_WIDTH -1 :0] buf_out;
-
     //datapath description
+    reg [BRAM_WIDTH -1 :0] buffer;
+
     genvar index;
     generate 
     for(index = 0;index <BRAM_WIDTH_IN_WORD;index = index +1)
     begin    
-    always@(*)   
+    always@(posedge s00_axis_aclk)   
         begin
             case(from_axis_mux_cntl[index*2 + 1:index*2])
                 2'b00, 2'b01: buffer[index*32+31 : index*32] <= buffer[index*32+31 : index*32];
                 2'b10: buffer[index*32+31 : index*32] <= BRAM_OUT[index*32+31 : index*32];
-                2'b11: buffer[index*32+31 : index*32] <= axis_out;
+                2'b11: buffer[index*32+31 : index*32] <= from_axis_data;
             endcase
         end
     end
     endgenerate
 
-    assign BRAM_IN = buffer;
-
     always@(*)
     begin
         case(to_axis_mux_cntl)
-            6'd0: axis_in <= buffer[0*32 +31 : 0*32];
-            6'd1: axis_in <= buffer[1*32 +31 : 1*32];
-            6'd2: axis_in <= buffer[2*32 +31 : 2*32];
-            6'd3: axis_in <= buffer[3*32 +31 : 3*32];
-            6'd4: axis_in <= buffer[4*32 +31 : 4*32];
-            6'd5: axis_in <= buffer[5*32 +31 : 5*32];
-            6'd6: axis_in <= buffer[6*32 +31 : 6*32];
-            6'd7: axis_in <= buffer[7*32 +31 : 7*32];
-            6'd8: axis_in <= buffer[8*32 +31 : 8*32];
-            6'd9: axis_in <= buffer[9*32 +31 : 9*32];
-            6'd10: axis_in <= buffer[10*32 +31 : 10*32];
-            6'd11: axis_in <= buffer[11*32 +31 : 11*32];
-            6'd12: axis_in <= buffer[12*32 +31 : 12*32];
-            6'd13: axis_in <= buffer[13*32 +31 : 13*32];
-            6'd14: axis_in <= buffer[14*32 +31 : 14*32];
-            6'd15: axis_in <= buffer[15*32 +31 : 15*32];
-            6'd16: axis_in <= buffer[16*32 +31 : 16*32];
-            6'd17: axis_in <= buffer[17*32 +31 : 17*32];
-            6'd18: axis_in <= buffer[18*32 +31 : 18*32];
-            6'd19: axis_in <= buffer[19*32 +31 : 19*32];
-            6'd20: axis_in <= buffer[20*32 +31 : 20*32];
-            6'd21: axis_in <= buffer[21*32 +31 : 21*32];
-            6'd22: axis_in <= buffer[22*32 +31 : 22*32];
-            6'd23: axis_in <= buffer[23*32 +31 : 23*32];
-            6'd24: axis_in <= buffer[24*32 +31 : 24*32];
-            6'd25: axis_in <= buffer[25*32 +31 : 25*32];
-            6'd26: axis_in <= buffer[26*32 +31 : 26*32];
-            6'd27: axis_in <= buffer[27*32 +31 : 27*32];
-            6'd28: axis_in <= buffer[28*32 +31 : 28*32];
-            6'd29: axis_in <= buffer[29*32 +31 : 29*32];
-            6'd30: axis_in <= buffer[30*32 +31 : 30*32];
-            6'd31: axis_in <= buffer[31*32 +31 : 31*32];
-            6'd32: axis_in <= buffer[32*32 +31 : 32*32];
-            6'd33: axis_in <= buffer[33*32 +31 : 33*32];
-            6'd34: axis_in <= buffer[34*32 +31 : 34*32];
-            6'd35: axis_in <= buffer[35*32 +31 : 35*32];
+            6'd0: to_axis_data <= buffer[0*32 +31 : 0*32];
+            6'd1: to_axis_data <= buffer[1*32 +31 : 1*32];
+            6'd2: to_axis_data <= buffer[2*32 +31 : 2*32];
+            6'd3: to_axis_data <= buffer[3*32 +31 : 3*32];
+            6'd4: to_axis_data <= buffer[4*32 +31 : 4*32];
+            6'd5: to_axis_data <= buffer[5*32 +31 : 5*32];
+            6'd6: to_axis_data <= buffer[6*32 +31 : 6*32];
+            6'd7: to_axis_data <= buffer[7*32 +31 : 7*32];
+            6'd8: to_axis_data <= buffer[8*32 +31 : 8*32];
+            6'd9: to_axis_data <= buffer[9*32 +31 : 9*32];
+            6'd10: to_axis_data <= buffer[10*32 +31 : 10*32];
+            6'd11: to_axis_data <= buffer[11*32 +31 : 11*32];
+            6'd12: to_axis_data <= buffer[12*32 +31 : 12*32];
+            6'd13: to_axis_data <= buffer[13*32 +31 : 13*32];
+            6'd14: to_axis_data <= buffer[14*32 +31 : 14*32];
+            6'd15: to_axis_data <= buffer[15*32 +31 : 15*32];
+            6'd16: to_axis_data <= buffer[16*32 +31 : 16*32];
+            6'd17: to_axis_data <= buffer[17*32 +31 : 17*32];
+            6'd18: to_axis_data <= buffer[18*32 +31 : 18*32];
+            6'd19: to_axis_data <= buffer[19*32 +31 : 19*32];
+            6'd20: to_axis_data <= buffer[20*32 +31 : 20*32];
+            6'd21: to_axis_data <= buffer[21*32 +31 : 21*32];
+            6'd22: to_axis_data <= buffer[22*32 +31 : 22*32];
+            6'd23: to_axis_data <= buffer[23*32 +31 : 23*32];
+            6'd24: to_axis_data <= buffer[24*32 +31 : 24*32];
+            6'd25: to_axis_data <= buffer[25*32 +31 : 25*32];
+            6'd26: to_axis_data <= buffer[26*32 +31 : 26*32];
+            6'd27: to_axis_data <= buffer[27*32 +31 : 27*32];
+            6'd28: to_axis_data <= buffer[28*32 +31 : 28*32];
+            6'd29: to_axis_data <= buffer[29*32 +31 : 29*32];
+            6'd30: to_axis_data <= buffer[30*32 +31 : 30*32];
+            6'd31: to_axis_data <= buffer[31*32 +31 : 31*32];
+            6'd32: to_axis_data <= buffer[32*32 +31 : 32*32];
+            6'd33: to_axis_data <= buffer[33*32 +31 : 33*32];
+            6'd34: to_axis_data <= buffer[34*32 +31 : 34*32];
+            6'd35: to_axis_data <= buffer[35*32 +31 : 35*32];
         endcase
      end
 
+    // IO mapping
+    assign BRAM_CLK = s00_axis_aclk;
+    assign BRAM_IN = buffer;
+
     //cntl logics
-    
-    axis_bram_adapter_v1_0_cntl controller(
+    axis_bram_adapter_v1_0_cntl #(
+        .BRAM_ADDR_LENGTH(BRAM_DEPTH),
+        .TO_AXIS_MUX_CNTL_BITS(ptr_width),
+        .BRAM_WIDTH_IN_WORD(BRAM_WIDTH_IN_WORD)
+    ) controller (
         .clk(s00_axis_aclk),
         .rstn(s00_axis_aresetn),
         .rw(mode_rw),
@@ -198,19 +186,17 @@
         .bram_wen(BRAM_WEN),
         .bram_en(BRAM_EN),
         .bram_index(BRAM_ADDR),
-        .stream_out_tlast(internal_m_tlast),
+        .stream_out_tlast(to_axis_tlast),
         .stream_out_valid(to_axis_valid),
         .stream_in_accep(from_axis_accep)
     );
     
-    // User logic ends
 
-
-// Instantiation of Axi Bus Interface S00_AXIS
+    //Instantiation of Axi Bus Interface S00_AXIS
 	axis_bram_adapter_v1_0_S00_AXIS # ( 
 		.C_S_AXIS_TDATA_WIDTH(C_S00_AXIS_TDATA_WIDTH)
 	) axis_bram_adapter_v1_0_S00_AXIS_inst (
-        .DOUT_TO_BUF(axis_out),
+        .DOUT_TO_BUF(from_axis_data),
         .DOUT_VALID(from_axis_valid),
         .DOUT_ACCEP(from_axis_accep),
 		.S_AXIS_ACLK(s00_axis_aclk),
@@ -234,10 +220,10 @@
 		.M_AXIS_TSTRB(m00_axis_tstrb),
 		.M_AXIS_TLAST(m00_axis_tlast),
 		.M_AXIS_TREADY(m00_axis_tready), 
-        .DIN_FROM_BUF(axis_in),
+        .DIN_FROM_BUF(to_axis_data),
         .DIN_ACCEP(to_axis_accep),
         .DIN_VALID(to_axis_valid),
-        .last(internal_m_tlast)
+        .last(to_axis_tlast)
 	);
 
 // Instantiation of Axi Bus Interface S02_AXI

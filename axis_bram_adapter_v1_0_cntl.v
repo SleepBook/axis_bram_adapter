@@ -2,7 +2,7 @@
 
 module axis_bram_adapter_v1_0_cntl #
 (
-    parameter integer BRAM_ADDR_LENGTH = 9,
+    parameter integer BRAM_ADDR_LENGTH = 12,
     parameter integer TO_AXIS_MUX_CNTL_BITS = 6,
     parameter integer BRAM_WIDTH_IN_WORD = 36
 )
@@ -10,28 +10,22 @@ module axis_bram_adapter_v1_0_cntl #
     input wire clk,
     input wire rstn,
     input wire rw, 
-    input wire[BRAM_ADDR_LENGTH-1:0] index_cntl,
-    input wire[BRAM_ADDR_LENGTH-1:0] size_cntl,
+    input wire[BRAM_ADDR_LENGTH-1 : 0] bram_start_index,
+    input wire[BRAM_ADDR_LENGTH-1 : 0] bram_bound_index,
     input wire stream_in_valid,
     input wire stream_out_accep,
     output wire stream_in_accep,
     output wire stream_out_valid,
     output reg[BRAM_WIDTH_IN_WORD*2-1:0] from_axis_mux_cntl,
-    output reg[5:0] to_axis_mux_cntl,
+    output reg[TO_AXIS_MUX_CNTL_BITS -1 : 0] to_axis_mux_cntl,
     output reg bram_wen,
     output reg bram_en,
     output reg [BRAM_ADDR_LENGTH-1:0] bram_index,
-    output reg stream_out_tlast
-    //debug ports
-   // output reg[5:0] cnt,
-   // output wire ptr_end,
-   // output wire ptr_start,
-   // output wire ptr_end_by_one
+    output wire stream_out_tlast
 );
 
 reg [5:0] cnt;
 reg ptr_end;
-reg ptr_start;
 reg ptr_end_by_one;
 reg rw_pre;
 
@@ -48,22 +42,19 @@ begin
     end
     else
     begin
-        if(((rw&&stream_in_valid) || (!rw && stream_out_accep)) && (rw == rw_pre))
-        begin
-            cnt <= cnt + 1;
-            if(cnt == BRAM_WIDTH_IN_WORD - 1)
-            begin
-                cnt <= 6'b0;
+        casex({rw, re_pre, stream_in_valid, stream_out_accep})
+            4'b111x, 4'b00x1:begin
+                cnt <= cnt + 1;
+                if(cnt == BRAM_WIDTH_IN_WORD - 1)
+                begin
+                    cnt <= 6'b0;
+                end
             end
-        end
-        else if (rw ^ rw_pre)
-        begin
-            cnt <= 6'd0;
-        end
-        else
-        begin
-            cnt <= cnt;
-        end
+            4'b10xx, 4'b01xx:begin
+                cnt <= 6'd0;
+            end
+            default: cnt <= cnt;
+        endcase
     end
 end
 
@@ -81,18 +72,8 @@ begin
 end
 
 
-
 always@(*)
 begin
-    if(cnt == 0)
-    begin
-        ptr_start = 1'b1;
-    end
-    else
-    begin
-        ptr_start = 1'b0;
-    end
-
     if(cnt == BRAM_WIDTH_IN_WORD - 2)
     begin
         ptr_end_by_one = 1'b1;
@@ -117,14 +98,14 @@ always@(posedge clk)
 begin
     if(!rstn)
     begin
-        bram_index <= index_cntl;
+        bram_index <= bram_start_index;
         bram_en <= 1'b0;
         bram_wen <= 1'b0;
     end
     else
     begin
         casex({rw, ptr_end, ptr_end_by_one, stream_in_valid, stream_out_accep, (rw^rw_pre)})
-            6'b1101x0: begin
+            6'b1011x0: begin
                 bram_en <= 1'b1;
                 bram_wen <= 1'b1;
                 bram_index <= bram_index + 1;
@@ -149,25 +130,7 @@ begin
     end
 end
 
-
-always@(posedge clk)
-begin
-    if(!rstn)
-    begin
-        stream_out_tlast <= 1'b0;
-    end
-    else 
-    begin
-        if((bram_index == size_cntl) && ptr_end_by_one)
-        begin
-            stream_out_tlast <= 1'b1;
-        end
-        else
-        begin
-            stream_out_tlast <= 1'b0;
-        end
-    end
-end
+assign stream_out_tlast = ptr_end && (bram_index == bram_bound_index);
 
 //stream in buf cntl
 //for each mux, high bit: 0 keep, 1 change

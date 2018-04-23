@@ -8,11 +8,8 @@
 
 	module axis_bram_adapter_v1_0_S02_AXI #
 	(
-        parameter integer BRAM_DEPTH = 9,
-
-		// Width of S_AXI data bus
+        parameter integer BRAM_DEPTH = 12,
 		parameter integer C_S_AXI_DATA_WIDTH	= 32,
-		// Width of S_AXI address bus
 		parameter integer C_S_AXI_ADDR_WIDTH	= 5
 	)
 	(
