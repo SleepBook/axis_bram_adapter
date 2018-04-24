@@ -42,7 +42,7 @@ begin
     end
     else
     begin
-        casex({rw, re_pre, stream_in_valid, stream_out_accep})
+        casex({rw, rw_pre, stream_in_valid, stream_out_accep})
             4'b111x, 4'b00x1:begin
                 cnt <= cnt + 1;
                 if(cnt == BRAM_WIDTH_IN_WORD - 1)
@@ -104,7 +104,7 @@ begin
     end
     else
     begin
-        casex({rw, ptr_end, ptr_end_by_two, stream_in_valid, stream_out_accep, (rw^rw_pre)})
+        casex({rw, ptr_end, ptr_end_by_one, stream_in_valid, stream_out_accep, (rw^rw_pre)})
             6'b1101x0: begin
                 bram_en <= 1'b1;
                 bram_wen <= 1'b1;
