@@ -104,8 +104,8 @@ begin
     end
     else
     begin
-        casex({rw, ptr_end, ptr_end_by_one, stream_in_valid, stream_out_accep, (rw^rw_pre)})
-            6'b1011x0: begin
+        casex({rw, ptr_end, ptr_end_by_two, stream_in_valid, stream_out_accep, (rw^rw_pre)})
+            6'b1101x0: begin
                 bram_en <= 1'b1;
                 bram_wen <= 1'b1;
                 bram_index <= bram_index + 1;
@@ -117,9 +117,9 @@ begin
                 bram_index <= bram_index + 1;
             end
             6'bxxxxx1: begin
-                bram_en <= bram_en;
-                bram_wen <= bram_wen;
-                bram_index <= 0;
+                bram_en <= 1'b0;
+                bram_wen <= 1'b0;
+                bram_index <= bram_start_index;
             end
             default:begin
                 bram_en <= 1'b0;
@@ -186,7 +186,10 @@ begin
     begin
         to_axis_mux_cntl <= cnt;
     end
+    else
+    begin
+        to_axis_mux_cntl <= 0;
+    end
 end
 
 endmodule
-
