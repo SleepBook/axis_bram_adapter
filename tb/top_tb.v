@@ -2,14 +2,13 @@
 
 module top_module_test;
 
-
 reg clk, rst_n;
 always #5 clk = ~clk;
 
 wire bram_en;
 wire bram_wen;
-wire bram_addr;
-wire to_bram;
+wire [11:0] bram_addr;
+wire [1151:0] to_bram;
 wire ready;
 wire out_valid;
 wire [31:0] out_data;
@@ -17,15 +16,20 @@ wire [3:0] out_strb;
 wire out_last;
 
 
-
-reg[31:0] from_bram;
+reg[1151:0] from_bram;
 reg[31:0] in_data;
 reg[3:0] in_tstrb;
 reg in_tlast;
 reg in_tvalid;
 reg out_ready;
 
-axis_bram_adapter_v1_0 test(
+//remember in order to modeling, these 3 signals 
+//need to be set at clk rising edge
+reg rw;
+reg bram_start_addr;
+reg bram_end_addr;
+
+axis_bram_adapter_v1_0_for_test test(
     .BRAM_CLK(clk),
     .BRAM_EN(bram_en),
     .BRAM_WEN(bram_wen),
@@ -46,53 +50,69 @@ axis_bram_adapter_v1_0 test(
 	.m00_axis_tstrb(out_strb),
     .m00_axis_tlast(out_last),
 	.m00_axis_tready(out_ready),
-	.s02_axi_aclk(clk),
-	.s02_axi_aresetn(rst_n),
-		input wire [C_S02_AXI_ADDR_WIDTH-1 : 0] s02_axi_awaddr,
-		input wire [2 : 0] s02_axi_awprot,
-		input wire  s02_axi_awvalidear
-
-		output wire  s02_axi_awready,
-		input wire [C_S02_AXI_DATA_WIDTH-1 : 0] s02_axi_wdata,
-		input wire [(C_S02_AXI_DATA_WIDTH/8)-1 : 0] s02_axi_wstrb,
-		input wire  s02_axi_wvalid,
-		output wire  s02_axi_wready,
-		output wire [1 : 0] s02_axi_bresp,
-		output wire  s02_axi_bvalid,
-		input wire  s02_axi_bready,
-		input wire [C_S02_AXI_ADDR_WIDTH-1 : 0] s02_axi_araddr,
-		input wire [2 : 0] s02_axi_arprot,
-		input wire  s02_axi_arvalid,
-		output wire  s02_axi_arready,
-		output wire [C_S02_AXI_DATA_WIDTH-1 : 0] s02_axi_rdata,
-		output wire [1 : 0] s02_axi_rresp,
-		output wire  s02_axi_rvalid,
-		input wire  s02_axi_rready
-	
+    .rw(rw),
+    .bram_start_addr(bram_start_addr),
+    .bram_bound_addr(bram_end_addr)
+);
 
 initial 
 begin
     clk = 0;
     rst_n = 0;
-    axis_tlast = 0;
-    #10 rst_n = 1;
 
-    axis_valid = 1;
-    dout_accep = 1;
-    #2 axis_data = 32'd0;
-    #10 axis_data = 32'd1;
-     #10 axis_data = 32'd2;
-     #5 dout_accep = 0;
-     #20 dout_accep = 1;
-    
-      #10 axis_data = 32'd3;
-       #10 axis_data = 32'd4;
-        #10 axis_data = 32'd5; 
-        axis_tlast = 1;
-            
-         #10 axis_data = 32'd6; axis_valid = 0;
-          #10 axis_data = 32'd7;
-    
+    bram_start_addr = 0;
+    bram_end_addr = 7;
+
+
+#20 rst_n = 1;
+//testing for write to bram
+
+    #5 in_data = 32'd1;
+    in_tvalid = 1'b1;
+    #10 in_data = 32'd2;
+    #10 in_data = 32'd3;
+    #10 in_data = 32'd4;
+    #10 in_data = 32'd5;
+    #10 in_data = 32'd6;
+    #10 in_data = 32'd7;
+    #10 in_data = 32'd8;
+    #10 in_data = 32'd9;
+    #10 in_data = 32'd10;
+    #10 in_data = 32'd11;
+    #10 in_data = 32'd12;
+    #10 in_data = 32'd13;
+    #10 in_data = 32'd14;
+    #10 in_data = 32'd15;
+    #10 in_data = 32'd16;
+    #10 in_data = 32'd17;
+    #10 in_data = 32'd18;
+    #10 in_data = 32'd19;
+    #10 in_data = 32'd20;
+    #10 in_data = 32'd21;
+    #10 in_data = 32'd22;
+    #10 in_data = 32'd23;
+    #10 in_data = 32'd24;
+    #10 in_data = 32'd25;
+    #10 in_data = 32'd26;
+    #10 in_data = 32'd27;
+    #10 in_data = 32'd28;
+    #10 in_data = 32'd29;
+    #10 in_data = 32'd30;
+    #10 in_data = 32'd31;
+    #10 in_data = 32'd32;
+    #10 in_data = 32'd33;
+    #10 in_data = 32'd34;
+    #10 in_data = 32'd35;
+    #10 in_data = 32'd36;
+    #10 in_data = 32'd37;
+    #10 in_data = 32'd38;
+    #10 in_data = 32'd39;
+    #10 in_data = 32'd40;
+    #10 in_data = 32'd41;
+    #10 in_data = 32'd42;
+    in_tlast = 1'b1;
+    #10 in_tvalid = 1'b0;
+    in_tlast = 1'b0;
    
     $finish;
 end
