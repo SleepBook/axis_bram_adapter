@@ -70,7 +70,9 @@
 		//input wire  s02_axi_rready
         input wire rw,
         input wire[11:0]  bram_start_addr,
-        input wire[11:0]  bram_bound_addr
+        input wire[11:0]  bram_bound_addr,
+        //port for debugging purpose
+        output wire [5:0] inner_cnt
 	);
 
 	function integer clogb2 (input integer bit_depth);
@@ -184,7 +186,9 @@
         .bram_index(BRAM_ADDR),
         .stream_out_tlast(to_axis_tlast),
         .stream_out_valid(to_axis_valid),
-        .stream_in_accep(from_axis_accep)
+        .stream_in_accep(from_axis_accep),
+        //debug ports
+        .cnt(inner_cnt)
     );
     
 

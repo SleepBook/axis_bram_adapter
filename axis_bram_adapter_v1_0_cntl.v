@@ -21,10 +21,12 @@ module axis_bram_adapter_v1_0_cntl #
     output reg bram_wen,
     output reg bram_en,
     output reg [BRAM_ADDR_LENGTH-1:0] bram_index,
-    output wire stream_out_tlast
+    output wire stream_out_tlast,
+    //ports for debugging 
+    output reg[5:0] cnt
 );
 
-reg [5:0] cnt;
+//reg [5:0] cnt;
 reg ptr_end;
 reg ptr_end_by_one;
 reg rw_pre;
