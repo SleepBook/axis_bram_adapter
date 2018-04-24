@@ -12,10 +12,6 @@
 		parameter integer C_M00_AXIS_TDATA_WIDTH	= 32,
 		parameter integer C_M00_AXIS_START_COUNT	= 32,
 
-		// Parameters of Axi Slave Bus Interface S02_AXI
-		parameter integer C_S02_AXI_DATA_WIDTH	= 32,
-		parameter integer C_S02_AXI_ADDR_WIDTH	= 5,
-
         //customer parameters
         parameter integer BRAM_DEPTH = 12,
         parameter integer BRAM_WIDTH_IN_WORD = 36,
