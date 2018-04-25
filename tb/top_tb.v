@@ -27,8 +27,9 @@ reg axis_out_ready;
 //remember in order to modeling, these 3 signals 
 //need to be set at clk rising edge
 reg rw;
-reg bram_start_addr;
-reg bram_end_addr;
+reg reload;
+reg[11:0] bram_start_addr;
+reg[11:0]  bram_end_addr;
 
 axis_bram_adapter_v1_0_for_test test(
     .BRAM_CLK(bram_clk),
@@ -52,6 +53,7 @@ axis_bram_adapter_v1_0_for_test test(
     .m00_axis_tlast(axis_out_tlast),
 	.m00_axis_tready(axis_out_ready),
     .rw(rw),
+    .addr_reload(reload),
     .bram_start_addr(bram_start_addr),
     .bram_bound_addr(bram_end_addr)
 );
@@ -60,62 +62,75 @@ initial
 begin
     clk = 0;
     rst_n = 0;
-
-    bram_start_addr = 3;
-    bram_end_addr = 7;
     rw = 1;
+    reload = 0;
 
 
 #20 rst_n = 1;
 //testing for write to bram
 
+    bram_start_addr = 12'd3;
+    bram_end_addr = 12'd7;
+
  rw = 0;
 #15 rw = 1;
+    reload = 1;
+
+#15 rw = 1;
+reload = 0;
+
+    axis_in_tlast = 1'b0;
 
     #5 axis_in_data = 32'd0;
     axis_in_valid = 1'b1;
-    #10 axis_in_data = 32'd1;
-    #10 axis_in_data = 32'd2;
-    #10 axis_in_data = 32'd3;
-    #10 axis_in_data = 32'd4;
-    #10 axis_in_data = 32'd5;
-    #10 axis_in_data = 32'd6;
-    #10 axis_in_data = 32'd7;
-    #10 axis_in_data = 32'd8;
-    #10 axis_in_data = 32'd9;
-    #10 axis_in_data = 32'd10;
-    #10 axis_in_data = 32'd11;
-    #10 axis_in_data = 32'd12;
-    #10 axis_in_data = 32'd13;
-    #10 axis_in_data = 32'd14;
-    #10 axis_in_data = 32'd15;
-    #10 axis_in_data = 32'd16;
-    #10 axis_in_data = 32'd17;
-    #10 axis_in_data = 32'd18;
-    #10 axis_in_data = 32'd19;
-    #10 axis_in_data = 32'd20;
-    #10 axis_in_data = 32'd21;
-    #10 axis_in_data = 32'd22;
-    #10 axis_in_data = 32'd23;
-    #10 axis_in_data = 32'd24;
-    #10 axis_in_data = 32'd25;
-    #10 axis_in_data = 32'd26;
-    #10 axis_in_data = 32'd27;
-    #10 axis_in_data = 32'd28;
-    #10 axis_in_data = 32'd29;
-    #10 axis_in_data = 32'd30;
-    #10 axis_in_data = 32'd31;
-    #10 axis_in_data = 32'd32;
-    #10 axis_in_data = 32'd33;
-    #10 axis_in_data = 32'd34;
-    #10 axis_in_data = 32'd35;
-    #10 axis_in_data = 32'd36;
-    #10 axis_in_data = 32'd37;
-    #10 axis_in_data = 32'd38;
-    #10 axis_in_data = 32'd39;
-    #10 axis_in_data = 32'd40;
-    #10 axis_in_data = 32'd41;
-    #10 axis_in_data = 32'd42;
+    #10 axis_in_data = 32'b11111111111111111111111111111111;
+    #10 axis_in_data = 32'b00000000000000000000000000000000;
+    #10 axis_in_data = 32'b11111111111111111111111111111111;
+    #10 axis_in_data = 32'b00000000000000000000000000000000;
+    #10 axis_in_data = 32'b11111111111111111111111111111111;
+    #10 axis_in_data = 32'b00000000000000000000000000000000;
+    #10 axis_in_data = 32'b11111111111111111111111111111111;
+    #10 axis_in_data = 32'b00000000000000000000000000000000;
+    #10 axis_in_data = 32'b11111111111111111111111111111111;
+    #10 axis_in_data = 32'b00000000000000000000000000000000;
+    #10 axis_in_data = 32'b11111111111111111111111111111111;
+    #10 axis_in_data = 32'b00000000000000000000000000000000;
+    #10 axis_in_data = 32'b11111111111111111111111111111111;
+    #10 axis_in_data = 32'b00000000000000000000000000000000;
+    #10 axis_in_data = 32'b11111111111111111111111111111111;
+    #10 axis_in_data = 32'b00000000000000000000000000000000;
+    #10 axis_in_data = 32'b11111111111111111111111111111111;
+    #10 axis_in_data = 32'b00000000000000000000000000000000;
+    #10 axis_in_data = 32'b11111111111111111111111111111111;
+    #10 axis_in_data = 32'b00000000000000000000000000000000;
+    #10 axis_in_data = 32'b11111111111111111111111111111111;
+    #10 axis_in_data = 32'b00000000000000000000000000000000;
+    #10 axis_in_data = 32'b11111111111111111111111111111111;
+    #10 axis_in_data = 32'b00000000000000000000000000000000;
+    #10 axis_in_data = 32'b11111111111111111111111111111111;
+    #10 axis_in_data = 32'b00000000000000000000000000000000;
+    #10 axis_in_data = 32'b11111111111111111111111111111111;
+    #10 axis_in_data = 32'b00000000000000000000000000000000;
+    #10 axis_in_data = 32'b11111111111111111111111111111111;
+    #10 axis_in_data = 32'b00000000000000000000000000000000;
+    #10 axis_in_data = 32'b11111111111111111111111111111111;
+    #10 axis_in_data = 32'b00000000000000000000000000000000;
+    #10 axis_in_data = 32'b11111111111111111111111111111111;
+    #10 axis_in_data = 32'b00000000000000000000000000000000;
+    #10 axis_in_data = 32'b11111111111111111111111111111111;
+    #10 axis_in_data = 32'b00000000000000000000000000000000;
+    #10 axis_in_data = 32'b11111111111111111111111111111111;
+    #10 axis_in_data = 32'b00000000000000000000000000000000;
+    #10 axis_in_data = 32'b11111111111111111111111111111111;
+    #10 axis_in_data = 32'b00000000000000000000000000000000;
+    #10 axis_in_data = 32'b11111111111111111111111111111111;
+    #10 axis_in_data = 32'b00000000000000000000000000000000;
+    #10 axis_in_data = 32'b11111111111111111111111111111111;
+    #10 axis_in_data = 32'b00000000000000000000000000000000;
+    #10 axis_in_data = 32'b11111111111111111111111111111111;
+    #10 axis_in_data = 32'b00000000000000000000000000000000;
+    #10 axis_in_data = 32'b11111111111111111111111111111111;
+    #10 axis_in_data = 32'b00000000000000000000000000000000;
     axis_in_tlast = 1'b1;
     #10 axis_in_valid = 1'b0;
     axis_in_data = 32'd0;

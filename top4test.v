@@ -69,10 +69,9 @@
 		//output wire  s02_axi_rvalid,
 		//input wire  s02_axi_rready
         input wire rw,
+        input wire addr_reload,
         input wire[11:0]  bram_start_addr,
-        input wire[11:0]  bram_bound_addr,
-        //port for debugging purpose
-        output wire [5:0] inner_cnt
+        input wire[11:0]  bram_bound_addr
 	);
 
 	function integer clogb2 (input integer bit_depth);
@@ -175,6 +174,7 @@
         .clk(s00_axis_aclk),
         .rstn(s00_axis_aresetn),
         .rw(mode_rw),
+        .addr_reload(addr_reload),
         .bram_start_index(rd_back_addr),
         .bram_bound_index(rd_back_sz),
         .stream_in_valid(from_axis_valid),
@@ -186,9 +186,7 @@
         .bram_index(BRAM_ADDR),
         .stream_out_tlast(to_axis_tlast),
         .stream_out_valid(to_axis_valid),
-        .stream_in_accep(from_axis_accep),
-        //debug ports
-        .cnt(inner_cnt)
+        .stream_in_accep(from_axis_accep)
     );
     
 
@@ -231,5 +229,6 @@
     assign mode_rw = rw;
     assign rd_back_sz = bram_bound_addr;
     assign rd_back_addr = bram_start_addr;
+
 
 endmodule

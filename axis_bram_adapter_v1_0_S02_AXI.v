@@ -81,6 +81,7 @@
         
         //Added ports
         output wire RW_MODE, 
+        output wire BRAM_ADDR_RELOAD,
         output wire [BRAM_DEPTH	-1:0] RD_BACK_ADDR, 
         output wire [BRAM_DEPTH	-1:0] RD_BACK_SIZE
 	);
@@ -447,6 +448,7 @@
 
 	// Add user logic here
     assign RW_MODE = slv_reg0[0];
+    assign BRAM_ADDR_RELOAD = slv_reg0[1];//relaod every upper_level
     assign RD_BACK_ADDR = slv_reg1[BRAM_DEPTH-1:0];
     assign RD_BACK_SIZE = slv_reg2[BRAM_DEPTH-1:0];
 

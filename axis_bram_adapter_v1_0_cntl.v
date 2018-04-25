@@ -10,6 +10,7 @@ module axis_bram_adapter_v1_0_cntl #
     input wire clk,
     input wire rstn,
     input wire rw, 
+    input wire addr_reload,
     input wire[BRAM_ADDR_LENGTH-1 : 0] bram_start_index,
     input wire[BRAM_ADDR_LENGTH-1 : 0] bram_bound_index,
     input wire stream_in_valid,
@@ -27,6 +28,7 @@ module axis_bram_adapter_v1_0_cntl #
 );
 
 //reg [5:0] cnt;
+reg ptr_start;
 reg ptr_end;
 reg ptr_end_by_one;
 reg rw_pre;
@@ -76,6 +78,15 @@ end
 
 always@(*)
 begin
+    if(cnt == 0)
+    begin
+        ptr_start = 1'b1;
+    end
+    else
+    begin
+        ptr_start = 1'b0;
+    end
+
     if(cnt == BRAM_WIDTH_IN_WORD - 2)
     begin
         ptr_end_by_one = 1'b1;
@@ -100,29 +111,41 @@ always@(posedge clk)
 begin
     if(!rstn)
     begin
+        bram_index <= 12'd0;
+        bram_en <= 1'b0;
+        bram_wen <= 1'b0;
+    end
+    else if(addr_reload)
+    begin
         bram_index <= bram_start_index;
         bram_en <= 1'b0;
         bram_wen <= 1'b0;
     end
     else
     begin
-        casex({rw, ptr_end, ptr_end_by_one, stream_in_valid, stream_out_accep, (rw^rw_pre)})
-            6'b1101x0: begin
+        casex({rw, ptr_start, ptr_end, ptr_end_by_one, stream_in_valid, stream_out_accep})
+            6'b10101x: begin
                 bram_en <= 1'b1;
                 bram_wen <= 1'b1;
-                bram_index <= bram_index + 1;
+                bram_index <= bram_index;
             end
-            //read from bram
-            6'b001x10: begin
-                bram_en <= 1'b1;
-                bram_wen <= 1'b0;
-                bram_index <= bram_index + 1;
-            end
-            6'bxxxxx1: begin
+            6'b11001x: begin
                 bram_en <= 1'b0;
                 bram_wen <= 1'b0;
-                bram_index <= bram_start_index;
+                bram_index <= bram_index + 1;
             end
+
+            6'b0001x1: begin
+                bram_en <= 1'b1;
+                bram_wen <= 1'b0;
+                bram_index <= bram_index;
+            end
+            6'b0010x1: begin
+                bram_en <= 1'b0;
+                bram_wen <= 1'b0;
+                bram_index <= bram_index + 1;
+            end
+
             default:begin
                 bram_en <= 1'b0;
                 bram_wen <= 1'b0;

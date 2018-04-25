@@ -101,6 +101,7 @@
 
     //associate with axi-lite
     wire mode_rw;
+    wire addr_reload;
     wire [BRAM_DEPTH-1 : 0] rd_back_addr;
     wire [BRAM_DEPTH-1 : 0] rd_back_sz;
 
@@ -177,6 +178,7 @@
         .clk(s00_axis_aclk),
         .rstn(s00_axis_aresetn),
         .rw(mode_rw),
+        .addr_reload(addr_reload),
         .bram_start_index(rd_back_addr),
         .bram_bound_index(rd_back_sz),
         .stream_in_valid(from_axis_valid),
@@ -254,6 +256,7 @@
 		.S_AXI_RVALID(s02_axi_rvalid),
 		.S_AXI_RREADY(s02_axi_rready),
         .RW_MODE(mode_rw), 
+        .BRAM_ADDR_RELOAD(addr_reload),
         .RD_BACK_SIZE(rd_back_sz),
         .RD_BACK_ADDR(rd_back_addr)
 	);
