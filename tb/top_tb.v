@@ -67,124 +67,124 @@ begin
 
     #20 rst_n = 1;
 
-   // //testing for write to bram
-   // bram_start_addr = 12'd3;
-   // bram_end_addr = 12'd7;
+   //testing for write to bram
+    bram_start_addr = 12'd3;
+    bram_end_addr = 12'd7;
 
-   // rw = 0;
-   // #15 rw = 1;
-   // reload = 1;
+    rw = 0;
+    #15 rw = 1;
+    reload = 1;
 
-   // #15 rw = 1;
-   // reload = 0;
+    #15 rw = 1;
+    reload = 0;
 
-   // axis_in_tlast = 1'b0;
+    axis_in_tlast = 1'b0;
 
-   // #5 axis_in_data = 32'd0;
-   // axis_in_valid = 1'b1;
-   // #10 axis_in_data = 32'b11111111111111111111111111111111;
-   // #10 axis_in_data = 32'b00000000000000000000000000000000;
-   // #10 axis_in_data = 32'b11111111111111111111111111111111;
-   // #10 axis_in_data = 32'b00000000000000000000000000000000;
-   // #10 axis_in_data = 32'b11111111111111111111111111111111;
-   // #10 axis_in_data = 32'b00000000000000000000000000000000;
-   // #10 axis_in_data = 32'b11111111111111111111111111111111;
-   // #10 axis_in_data = 32'b00000000000000000000000000000000;
-   // #10 axis_in_data = 32'b11111111111111111111111111111111;
-   // #10 axis_in_data = 32'b00000000000000000000000000000000;
-   // #10 axis_in_data = 32'b11111111111111111111111111111111;
-   // #10 axis_in_data = 32'b00000000000000000000000000000000;
-   // #10 axis_in_data = 32'b11111111111111111111111111111111;
-   // #10 axis_in_data = 32'b00000000000000000000000000000000;
-   // #10 axis_in_data = 32'b11111111111111111111111111111111;
-   // #10 axis_in_data = 32'b00000000000000000000000000000000;
-   // #10 axis_in_data = 32'b11111111111111111111111111111111;
-   // #10 axis_in_data = 32'b00000000000000000000000000000000;
-   // #10 axis_in_data = 32'b11111111111111111111111111111111;
-   // #10 axis_in_data = 32'b00000000000000000000000000000000;
-   // #10 axis_in_data = 32'b11111111111111111111111111111111;
-   // #10 axis_in_data = 32'b00000000000000000000000000000000;
-   // #10 axis_in_data = 32'b11111111111111111111111111111111;
-   // #10 axis_in_data = 32'b00000000000000000000000000000000;
-   // #10 axis_in_data = 32'b11111111111111111111111111111111;
-   // #10 axis_in_data = 32'b00000000000000000000000000000000;
-   // #10 axis_in_data = 32'b11111111111111111111111111111111;
-   // #10 axis_in_data = 32'b00000000000000000000000000000000;
-   // #10 axis_in_data = 32'b11111111111111111111111111111111;
-   // #10 axis_in_data = 32'b00000000000000000000000000000000;
-   // #10 axis_in_data = 32'b11111111111111111111111111111111;
-   // #10 axis_in_data = 32'b00000000000000000000000000000000;
-   // #10 axis_in_data = 32'b11111111111111111111111111111111;
-   // #10 axis_in_data = 32'b00000000000000000000000000000000;
-   // #10 axis_in_data = 32'b11111111111111111111111111111111;
+    #5 axis_in_data = 32'd0;
+    axis_in_valid = 1'b1;
+    #10 axis_in_data = 32'b11111111111111111111111111111111;
+    #10 axis_in_data = 32'b00000000000000000000000000000000;
+    #10 axis_in_data = 32'b11111111111111111111111111111111;
+    #10 axis_in_data = 32'b00000000000000000000000000000000;
+    #10 axis_in_data = 32'b11111111111111111111111111111111;
+    #10 axis_in_data = 32'b00000000000000000000000000000000;
+    #10 axis_in_data = 32'b11111111111111111111111111111111;
+    #10 axis_in_data = 32'b00000000000000000000000000000000;
+    #10 axis_in_data = 32'b11111111111111111111111111111111;
+    #10 axis_in_data = 32'b00000000000000000000000000000000;
+    #10 axis_in_data = 32'b11111111111111111111111111111111;
+    #10 axis_in_data = 32'b00000000000000000000000000000000;
+    #10 axis_in_data = 32'b11111111111111111111111111111111;
+    #10 axis_in_data = 32'b00000000000000000000000000000000;
+    #10 axis_in_data = 32'b11111111111111111111111111111111;
+    #10 axis_in_data = 32'b00000000000000000000000000000000;
+    #10 axis_in_data = 32'b11111111111111111111111111111111;
+    #10 axis_in_data = 32'b00000000000000000000000000000000;
+    #10 axis_in_data = 32'b11111111111111111111111111111111;
+    #10 axis_in_data = 32'b00000000000000000000000000000000;
+    #10 axis_in_data = 32'b11111111111111111111111111111111;
+    #10 axis_in_data = 32'b00000000000000000000000000000000;
+    #10 axis_in_data = 32'b11111111111111111111111111111111;
+    #10 axis_in_data = 32'b00000000000000000000000000000000;
+    #10 axis_in_data = 32'b11111111111111111111111111111111;
+    #10 axis_in_data = 32'b00000000000000000000000000000000;
+    #10 axis_in_data = 32'b11111111111111111111111111111111;
+    #10 axis_in_data = 32'b00000000000000000000000000000000;
+    #10 axis_in_data = 32'b11111111111111111111111111111111;
+    #10 axis_in_data = 32'b00000000000000000000000000000000;
+    #10 axis_in_data = 32'b11111111111111111111111111111111;
+    #10 axis_in_data = 32'b00000000000000000000000000000000;
+    #10 axis_in_data = 32'b11111111111111111111111111111111;
+    #10 axis_in_data = 32'b00000000000000000000000000000000;
+    #10 axis_in_data = 32'b11111111111111111111111111111111;
 
-   // #10 axis_in_data = 32'haaaaaaaa;
-   // #10 axis_in_data = 32'hcccccccc;
-   //  #10 axis_in_data = 32'haaaaaaaa;
-   // #10 axis_in_data = 32'hcccccccc;
-   //  #10 axis_in_data = 32'haaaaaaaa;
-   // #10 axis_in_data = 32'hcccccccc;
-   //  #10 axis_in_data = 32'haaaaaaaa;
-   // #10 axis_in_data = 32'hcccccccc;
-   //  #10 axis_in_data = 32'haaaaaaaa;
-   // #10 axis_in_data = 32'hcccccccc;
-   //  #10 axis_in_data = 32'haaaaaaaa;
-   // #10 axis_in_data = 32'hcccccccc;
-   //  #10 axis_in_data = 32'haaaaaaaa;
-   // #10 axis_in_data = 32'hcccccccc;
-   //  #10 axis_in_data = 32'haaaaaaaa;
-   // #10 axis_in_data = 32'hcccccccc;
-   //  #10 axis_in_data = 32'haaaaaaaa;
-   // #10 axis_in_data = 32'hcccccccc;
-   //  #10 axis_in_data = 32'haaaaaaaa;
-   // #10 axis_in_data = 32'hcccccccc;
-   //  #10 axis_in_data = 32'haaaaaaaa;
-   // #10 axis_in_data = 32'hcccccccc;
-   //  #10 axis_in_data = 32'haaaaaaaa;
-   // #10 axis_in_data = 32'hcccccccc;
-   //  #10 axis_in_data = 32'haaaaaaaa;
-   // #10 axis_in_data = 32'hcccccccc;
-   //  #10 axis_in_data = 32'haaaaaaaa;
-   // #10 axis_in_data = 32'hcccccccc;
-   //  #10 axis_in_data = 32'haaaaaaaa;
-   // #10 axis_in_data = 32'hcccccccc;
-   //  #10 axis_in_data = 32'haaaaaaaa;
-   // #10 axis_in_data = 32'hcccccccc;
-   //  #10 axis_in_data = 32'haaaaaaaa;
-   // #10 axis_in_data = 32'hcccccccc;
-   //  #10 axis_in_data = 32'haaaaaaaa;
-   // #10 axis_in_data = 32'hcccccccc;
-   //  #10 axis_in_data = 32'haaaaaaaa;
-   // #10 axis_in_data = 32'hcccccccc;
-   //  #10 axis_in_data = 32'haaaaaaaa;
-   // #10 axis_in_data = 32'hcccccccc;
-   // 
-   // axis_in_tlast = 1'b1;
-   // #10 axis_in_valid = 1'b0;
-   // axis_in_data = 32'd0;
-   // axis_in_tlast = 1'b0;
-   // 
+    #10 axis_in_data = 32'haaaaaaaa;
+    #10 axis_in_data = 32'hcccccccc;
+     #10 axis_in_data = 32'haaaaaaaa;
+    #10 axis_in_data = 32'hcccccccc;
+     #10 axis_in_data = 32'haaaaaaaa;
+    #10 axis_in_data = 32'hcccccccc;
+     #10 axis_in_data = 32'haaaaaaaa;
+    #10 axis_in_data = 32'hcccccccc;
+     #10 axis_in_data = 32'haaaaaaaa;
+    #10 axis_in_data = 32'hcccccccc;
+     #10 axis_in_data = 32'haaaaaaaa;
+    #10 axis_in_data = 32'hcccccccc;
+     #10 axis_in_data = 32'haaaaaaaa;
+    #10 axis_in_data = 32'hcccccccc;
+     #10 axis_in_data = 32'haaaaaaaa;
+    #10 axis_in_data = 32'hcccccccc;
+     #10 axis_in_data = 32'haaaaaaaa;
+    #10 axis_in_data = 32'hcccccccc;
+     #10 axis_in_data = 32'haaaaaaaa;
+    #10 axis_in_data = 32'hcccccccc;
+     #10 axis_in_data = 32'haaaaaaaa;
+    #10 axis_in_data = 32'hcccccccc;
+     #10 axis_in_data = 32'haaaaaaaa;
+    #10 axis_in_data = 32'hcccccccc;
+     #10 axis_in_data = 32'haaaaaaaa;
+    #10 axis_in_data = 32'hcccccccc;
+     #10 axis_in_data = 32'haaaaaaaa;
+    #10 axis_in_data = 32'hcccccccc;
+     #10 axis_in_data = 32'haaaaaaaa;
+    #10 axis_in_data = 32'hcccccccc;
+     #10 axis_in_data = 32'haaaaaaaa;
+    #10 axis_in_data = 32'hcccccccc;
+     #10 axis_in_data = 32'haaaaaaaa;
+    #10 axis_in_data = 32'hcccccccc;
+     #10 axis_in_data = 32'haaaaaaaa;
+    #10 axis_in_data = 32'hcccccccc;
+     #10 axis_in_data = 32'haaaaaaaa;
+    #10 axis_in_data = 32'hcccccccc;
+     #10 axis_in_data = 32'haaaaaaaa;
+    #10 axis_in_data = 32'hcccccccc;
+    
+    axis_in_tlast = 1'b1;
+    #10 axis_in_valid = 1'b0;
+    axis_in_data = 32'd0;
+    axis_in_tlast = 1'b0;
+    
 
 
     //write test done
     //start read test
 
-    bram_start_addr = 12'd6;
-    bram_end_addr = 12'd7;
-    axis_out_ready = 1'b0;
-    rw = 0;
-    reload = 1;
-
-    #15 rw = 0;
-    reload = 0;
-
-
-    bram_out_data = {18{{8{4'hc}},{8{4'ha}}}};
-    axis_out_ready = 1'b1;
-    
-    #800 bram_out_data = {18{{8{4'hb}},{8{4'hd}}}};
-
-   
+//    bram_start_addr = 12'd6;
+//    bram_end_addr = 12'd7;
+//    axis_out_ready = 1'b0;
+//    rw = 0;
+//    reload = 1;
+//
+//    #15 rw = 0;
+//    reload = 0;
+//
+//
+//    bram_out_data = {18{{8{4'hc}},{8{4'ha}}}};
+//    axis_out_ready = 1'b1;
+//    
+//    #800 bram_out_data = {18{{8{4'hb}},{8{4'hd}}}};
+//
+//   
     $finish;
 end
 endmodule
