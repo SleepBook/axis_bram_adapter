@@ -33,6 +33,8 @@ reg ptr_end;
 reg ptr_end_by_one;
 reg rw_pre;
 
+reg bram_en_delay;
+
 //current design the buffer never stalls
 assign stream_in_accep = rw;
 assign stream_out_valid = !rw;
@@ -113,6 +115,7 @@ begin
     begin
         bram_index <= 12'd0;
         bram_en <= 1'b0;
+        bram_en_delay <= 1'b0;
         bram_wen <= 1'b0;
     end
     else if(addr_reload)
@@ -123,24 +126,24 @@ begin
     end
     else
     begin
-        casex({rw, ptr_start, ptr_end, ptr_end_by_one, stream_in_valid, stream_out_accep})
-            6'b10101x: begin
+        casex({rw, ptr_end, ptr_end_by_one, stream_in_valid, stream_out_accep, bram_en_delay})
+            6'b1101xx: begin
                 bram_en <= 1'b1;
                 bram_wen <= 1'b1;
                 bram_index <= bram_index;
             end
-            6'b11001x: begin
+            6'b1001x1: begin
                 bram_en <= 1'b0;
                 bram_wen <= 1'b0;
                 bram_index <= bram_index + 1;
             end
 
-            6'b0001x1: begin
+            6'b001x1x: begin
                 bram_en <= 1'b1;
                 bram_wen <= 1'b0;
                 bram_index <= bram_index;
             end
-            6'b0010x1: begin
+            6'b010x11: begin
                 bram_en <= 1'b0;
                 bram_wen <= 1'b0;
                 bram_index <= bram_index + 1;
@@ -154,6 +157,19 @@ begin
         endcase
     end
 end
+
+always@(posedge clk)
+begin
+    if(!rstn)
+    begin
+        bram_en_delay <= 1'b0;
+    end
+    else
+    begin
+        bram_en_delay <= bram_en;
+    end
+end
+
 
 assign stream_out_tlast = ptr_end && (bram_index == bram_bound_index);
 
