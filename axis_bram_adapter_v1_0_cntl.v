@@ -150,7 +150,7 @@ begin
                 bram_wen <= 1'b0;
                 bram_index <= bram_index;
             end
-            8'b0010x11x: begin
+            8'b0010xxxx: begin
                 bram_en <= 1'b0;
                 bram_wen <= 1'b0;
                 bram_index <= bram_index + 1;

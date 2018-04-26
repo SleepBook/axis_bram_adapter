@@ -182,7 +182,7 @@ begin
     bram_out_data = {18{{8{4'hc}},{8{4'ha}}}};
     axis_out_ready = 1'b1;
     
-    #100 bram_out_data = {18{{8{4'hb}},{8{4'hd}}}};
+    #800 bram_out_data = {18{{8{4'hb}},{8{4'hd}}}};
 
    
     $finish;
