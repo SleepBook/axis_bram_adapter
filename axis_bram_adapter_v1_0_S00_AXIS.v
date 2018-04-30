@@ -1,3 +1,14 @@
+//Customed AXIS Slave Interface
+//
+//futher abstract the axis-s interface to user
+//interface to user:
+//   DOUT_VALID, DOUT_DATA
+//
+//User to Interface:
+//   DOUT_ACCEP
+//
+//the cycle user negate accep, the next cycle the valid signal is
+//unset as well
 `timescale 1 ns / 1 ps
 	module axis_bram_adapter_v1_0_S00_AXIS #
 	(

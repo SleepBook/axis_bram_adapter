@@ -22,12 +22,10 @@ module axis_bram_adapter_v1_0_cntl #
     output reg bram_wen,
     output reg bram_en,
     output reg [BRAM_ADDR_LENGTH-1:0] bram_index,
-    output wire stream_out_tlast,
-    //ports for debugging 
-    output reg[5:0] cnt
+    output wire stream_out_tlast
 );
 
-//reg [5:0] cnt;
+reg [5:0] cnt;
 reg ptr_start;
 reg ptr_end;
 reg ptr_end_by_one;
@@ -121,7 +119,6 @@ begin
     begin
         bram_index <= 12'd0;
         bram_en <= 1'b0;
-        bram_en_delay <= 1'b0;
         bram_wen <= 1'b0;
     end
     else if(addr_reload)
