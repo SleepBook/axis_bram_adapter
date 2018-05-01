@@ -85,7 +85,10 @@
 	endfunction
     //assume the read and write channel has same width
 	localparam ptr_width  = clogb2(BRAM_WIDTH_IN_WORD);
-    //Internal Linking (User Resources)
+
+
+    //Internal Connections
+
     //associate with from_axis
     wire [BRAM_WIDTH_IN_WORD*2 -1 : 0] from_axis_mux_cntl;
     wire from_axis_valid;
@@ -123,6 +126,7 @@
     end
     endgenerate
 
+    //without delay
     always@(*)
     begin
         case(to_axis_mux_cntl)
@@ -171,7 +175,7 @@
 
     //cntl logics
     axis_bram_adapter_v1_0_cntl #(
-        .BRAM_ADDR_LENGTH(BRAM_DEPTH),
+        .BRAM_DEPTH(BRAM_DEPTH),
         .TO_AXIS_MUX_CNTL_BITS(ptr_width),
         .BRAM_WIDTH_IN_WORD(BRAM_WIDTH_IN_WORD)
     ) controller (
