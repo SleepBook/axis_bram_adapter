@@ -165,10 +165,12 @@ begin
     #5 axis_in_data = 32'd0;
 
     axis_in_valid = 1'b1;
+    wait(axis_in_ready);
+    #10
 
     //batch of 26 sigs
-    axis_in_data = 32'b11111111111111111111111111111111;
-    #10 axis_in_data = 32'b00000000000000000000000000000000;
+    axis_in_data = 32'heeeeeeee;
+    #10 axis_in_data = 32'hdddddddd;
     #10 axis_in_data = 32'b11111111111111111111111111111111;
     #10 axis_in_data = 32'b00000000000000000000000000000000;
     #10 axis_in_data = 32'b11111111111111111111111111111111;
@@ -245,10 +247,10 @@ begin
     #10 axis_in_data = 32'hcccccccc;
     
     //couple of extra signals
-    #10 axis_in_data = 32'hcccccccc;
+    //#10 axis_in_data = 32'hcccccccc;
     axis_in_tlast = 1'b1;
 
-    #5 axis_in_valid = 1'b0;
+    #10 axis_in_valid = 1'b0;
     axis_in_data = 32'd0;
     axis_in_tlast = 1'b0;
     

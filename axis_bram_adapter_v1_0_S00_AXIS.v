@@ -1,14 +1,11 @@
 //Customed AXIS Slave Interface
 //
-//futher abstract the axis-s interface to user
-//interface to user:
-//   DOUT_VALID, DOUT_DATA
+//futher abstract the axis-s interface to user Logic
 //
-//User to Interface:
-//   DOUT_ACCEP
-//
-//the cycle user negate accep, the next cycle the valid signal is
-//unset as well
+//Outsider: Standard AXIS-slave Interface
+//Insider: DOUT, DOUT_VALID, DOUT_ACCEP
+//abstract away the tlast singal
+//there is one cycle delay between outside and inside interface
 `timescale 1 ns / 1 ps
 	module axis_bram_adapter_v1_0_S00_AXIS #
 	(
@@ -102,36 +99,11 @@
 	begin
 	  if(!S_AXIS_ARESETN)
 	    begin
-	      //write_done <= 1'b0;
-          dout <= 0;
+          dout <= {C_S_AXIS_TDATA_WIDTH{1'b0}};
 	    end  
 	  else
         begin
-           // case(w_en)
-           //     1'b0:begin
-           //         dout <= 0;
-           //         write_done <= 1'b0;
-           //     end
-           //     1'b1:begin
-           //         dout <= S_AXIS_TDATA;
-           //         write_done <= 1'b0;
-           //     end
-           // endcase
-            case({w_en, S_AXIS_TLAST})
-                2'b10:begin
-                    dout <= S_AXIS_TDATA;
-                   // write_done <= 1'b0;
-                end
-                2'b11:begin
-                    dout <= S_AXIS_TDATA;
-                    //write_done <= 1'b1;
-                end
-                default:begin
-                    dout <= 0;
-                    //write_done <= 1'b0;
-                end
-            endcase
+            dout <= (w_en) ? S_AXIS_TDATA : {C_S_AXIS_TDATA_WIDTH{1'b0}};
         end
     end
-
 endmodule
