@@ -226,10 +226,10 @@
 		.M_AXIS_TSTRB(m00_axis_tstrb),
 		.M_AXIS_TLAST(m00_axis_tlast),
 		.M_AXIS_TREADY(m00_axis_tready), 
-        .DIN_FROM_BUF(to_axis_data),
+        .DIN_DATA(to_axis_data),
         .DIN_ACCEP(to_axis_accep),
         .DIN_VALID(to_axis_valid),
-        .last(to_axis_tlast)
+        .DIN_TLAST(to_axis_tlast)
 	);
 
 // Instantiation of Axi Bus Interface S02_AXI

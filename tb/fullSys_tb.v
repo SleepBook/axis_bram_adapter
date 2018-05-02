@@ -1,5 +1,6 @@
 //full system simulation of this IP
 //with bram and interface signals
+//
 `timescale 1 ns / 100 ps
 module top_module_test;
 
@@ -169,7 +170,7 @@ begin
     #10
 
     //batch of 26 sigs
-    axis_in_data = 32'heeeeeeee;
+    axis_in_data = 32'hbbbbbbbb;//mark for begin
     #10 axis_in_data = 32'hdddddddd;
     #10 axis_in_data = 32'b11111111111111111111111111111111;
     #10 axis_in_data = 32'b00000000000000000000000000000000;
@@ -244,15 +245,14 @@ begin
      #10 axis_in_data = 32'haaaaaaaa;
     #10 axis_in_data = 32'hcccccccc;
      #10 axis_in_data = 32'haaaaaaaa;
-    #10 axis_in_data = 32'hcccccccc;
-    
-    //couple of extra signals
-    //#10 axis_in_data = 32'hcccccccc;
+     #10 axis_in_data = 32'heeeeeeee;//mark for end
     axis_in_tlast = 1'b1;
 
+    
     #10 axis_in_valid = 1'b0;
     axis_in_data = 32'd0;
     axis_in_tlast = 1'b0;
+    #50
     
 
     //write test done
@@ -261,21 +261,18 @@ begin
 
     axi_lite_write(4, 32'd0);
     axi_lite_write(8, 32'd1);
-
-    //rw = 0;
-    axi_lite_write(0, 32'h00000000);
-
-    #15
+    #10
     //rw = 0;
     //reload = 1;
     axi_lite_write(0, 32'h00000002);
-    #15 
+    #10
     //rw = 0;
     //reload = 0;
     axi_lite_write(0, 32'h00000000);
 
     axis_out_ready = 1'b1;
     
+    #1000
     $finish;
 end
 endmodule

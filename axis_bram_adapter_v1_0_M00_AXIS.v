@@ -1,27 +1,34 @@
-//modified axis master
-//sending data from reg to the bus
+//Customed AXIS Master Interface
+//
+//Interface user logic to axis output
+//
+//Outsider: Standard AXIS-master Interface
+//Insider: DIN_DATA, DIN_VALID, DIN_ACCEP, DIN_TLAST
+//
+//In my opinion, this is pretty a ugly and redundant design
+//the user-in to interface-out has one cycle delay, but 
+//again, the relative timing is correct
+//
+//but it has an internal waiting period, so before all this
+//stuff begin to transfer, it will wait for 32 cycles
+//during that period, the handshake can't be done, so the 
+//reflection is the DIN_ACCEP is always set 0;
 `timescale 1 ns / 1 ps
-
 	module axis_bram_adapter_v1_0_M00_AXIS #
 	(
-		// Width of S_AXIS address bus. The slave accepts the read and write addresses of width C_M_AXIS_TDATA_WIDTH.
 		parameter integer C_M_AXIS_TDATA_WIDTH	= 32,
-		// Start count is the number of clock cycles the master will wait before initiating/issuing any transaction.
+        //what the hell does this interface need to wait 
 		parameter integer C_M_START_COUNT	= 32
 	)
 	(
 		// Users to add ports here
-		input wire [C_M_AXIS_TDATA_WIDTH-1 : 0] DIN_FROM_BUF,
+		input wire [C_M_AXIS_TDATA_WIDTH-1 : 0] DIN_DATA,
         input wire DIN_VALID,
-        input wire last,
-        output wire DIN_ACCEP,
-
-		// User ports ends
-		// Do not modify the ports beyond this line
+        input wire DIN_TLAST,
+        output wire DIN_ACCEP,//interprete this as internal handshake
 
 		// Global ports
 		input wire  M_AXIS_ACLK,
-		// 
 		input wire  M_AXIS_ARESETN,
 		// Master Stream Ports. TVALID indicates that the master is driving a valid transfer, A transfer takes place when both TVALID and TREADY are asserted. 
 		output wire  M_AXIS_TVALID,
@@ -72,7 +79,7 @@
 	//Last of the streaming data delayed by one clock cycle
 	reg  	axis_tlast_delay;
 	//FIFO implementation signals
-	reg [C_M_AXIS_TDATA_WIDTH-1 : 0] 	stream_data_out;
+	reg [C_M_AXIS_TDATA_WIDTH-1 : 0] stream_data_out;
 	wire  	tx_en;
 	//The master has issued all the streaming data stored in FIFO
 	reg  	tx_done;
@@ -80,17 +87,17 @@
 
 	// I/O Connections assignments
 
-	assign M_AXIS_TVALID	= axis_tvalid_delay;
+	assign M_AXIS_TVALID = axis_tvalid_delay;
 	assign M_AXIS_TDATA	= stream_data_out;
 	assign M_AXIS_TLAST	= axis_tlast_delay;
 	assign M_AXIS_TSTRB	= {(C_M_AXIS_TDATA_WIDTH/8){1'b1}};
 
 
-	// Control state machine implementation                             
+    //seems like this stupid fsm start increse its state once power on
+    //and only reset at lest at seeing tlast
 	always @(posedge M_AXIS_ACLK)                                             
 	begin                                                                     
 	  if (!M_AXIS_ARESETN)                                                    
-	  // Synchronous reset (active low)                                       
 	    begin                                                                 
 	      mst_exec_state <= IDLE;                                             
 	      count    <= 0;                                                      
@@ -125,7 +132,7 @@
 
 
 	assign axis_tvalid = ((mst_exec_state == SEND_STREAM) && DIN_VALID);
-	assign axis_tlast = last; //drove by outside
+	assign axis_tlast = DIN_TLAST; 
 	assign tx_en = M_AXIS_TREADY && axis_tvalid;   
     assign DIN_ACCEP = tx_en;
 
@@ -155,7 +162,7 @@
         end
         else
         begin
-            if(last)
+            if(DIN_TLAST)
             begin
                 tx_done <= 1'b1;
             end
@@ -175,7 +182,7 @@
         end                                          
       else if (tx_en)  
         begin                                        
-          stream_data_out <= DIN_FROM_BUF;   
+          stream_data_out <= DIN_DATA;   
         end                                          
       else
       begin

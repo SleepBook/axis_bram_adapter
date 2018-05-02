@@ -52,12 +52,12 @@ begin
 end
 
 assign stream_in_accep = rw;
-assign stream_out_valid = ((!ptr_start) && (!rw)) || (ptr_start && bram_en_delay);
+assign stream_out_valid = (!rw) && ((!ptr_start) || (ptr_start && bram_en_2_delay));
 
 wire stream_in_shk;
 wire stream_out_shk;
 assign stream_in_shk = stream_in_accep && stream_in_valid;
-assign stream_out_shk = stream_out_accep && stream_out_valid;
+assign stream_out_shk = stream_out_accep;
 
 always@(posedge clk)
 begin
