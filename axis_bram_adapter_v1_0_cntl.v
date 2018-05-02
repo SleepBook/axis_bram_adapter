@@ -122,7 +122,7 @@ begin
     begin
         bram_index <= {BRAM_DEPTH{1'b0}};
     end
-    else if(bram_en_delay)
+    else if(bram_en_2_delay)
     begin
         bram_index <= bram_index + 1;
     end
@@ -132,7 +132,7 @@ begin
     end
 end
 
-assign stream_out_tlast = ptr_end && (bram_index == bram_bound_index);
+assign stream_out_tlast = ptr_end && (bram_index == bram_bound_index + 1);
 
 always@(*)
 begin
