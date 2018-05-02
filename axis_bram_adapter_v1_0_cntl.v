@@ -37,6 +37,8 @@ reg ptr_end_by_two;
 reg bram_en_delay;
 reg bram_en_2_delay;
 
+reg out_tlast;
+
 always@(posedge clk)
 begin
     if(!rstn)
@@ -52,7 +54,7 @@ begin
 end
 
 assign stream_in_accep = rw;
-assign stream_out_valid = (!rw) && ((!ptr_start) || (ptr_start && bram_en_2_delay));
+assign stream_out_valid = (!rw) && (((!ptr_start) || (ptr_start && bram_en_2_delay)) && (!out_tlast));
 
 wire stream_in_shk;
 wire stream_out_shk;
@@ -133,6 +135,21 @@ begin
 end
 
 assign stream_out_tlast = ptr_end && (bram_index == bram_bound_index + 1);
+always@(posedge clk)
+begin
+    if(!rstn)
+    begin
+        out_tlast <= 1'b0;
+    end
+    else if(stream_out_tlast)
+    begin
+        out_tlast <= 1'b1;
+    end
+    else
+    begin
+        out_tlast <= out_tlast;
+    end
+end
 
 always@(*)
 begin
