@@ -270,6 +270,7 @@ begin
     axis_out_ready = 1'b1;
     
     #1000
+    axis_out_ready = 1'b0;
     $finish;
 end
 endmodule
