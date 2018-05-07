@@ -134,7 +134,8 @@
 	assign axis_tvalid = ((mst_exec_state == SEND_STREAM) && DIN_VALID);
 	assign axis_tlast = DIN_TLAST; 
 	assign tx_en = M_AXIS_TREADY && axis_tvalid;   
-    assign DIN_ACCEP = tx_en;
+    //assign DIN_ACCEP = tx_en;
+    assign DIN_ACCEP = ((mst_exec_state == SEND_STREAM) && M_AXIS_TREADY);
 
 	// Delay the axis_tvalid and axis_tlast signal by one clock cycle                              
 	// to match the latency of M_AXIS_TDATA                                                        

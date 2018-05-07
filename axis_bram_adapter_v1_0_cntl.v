@@ -37,6 +37,8 @@ reg ptr_end_by_two;
 reg bram_en_delay;
 reg bram_en_2_delay;
 
+reg out_tlast;
+
 always@(posedge clk)
 begin
     if(!rstn)
@@ -52,12 +54,12 @@ begin
 end
 
 assign stream_in_accep = rw;
-assign stream_out_valid = (!rw) && ((!ptr_start) || (ptr_start && bram_en_2_delay));
+assign stream_out_valid = (!rw) && (((!ptr_start) || (ptr_start && bram_en_2_delay)) && (!out_tlast));
 
 wire stream_in_shk;
 wire stream_out_shk;
 assign stream_in_shk = stream_in_accep && stream_in_valid;
-assign stream_out_shk = stream_out_accep;
+assign stream_out_shk = stream_out_accep && stream_out_valid;
 
 always@(posedge clk)
 begin
@@ -91,16 +93,16 @@ begin
     else 
     //add handshake sig in sensitive list to make sure en is only set for one cycle
     begin
-        casex({rw, ptr_start, ptr_end_by_two, ptr_end, bram_en_2_delay, bram_en_delay, bram_en, stream_in_shk, stream_out_shk})
+        casex({rw, ptr_start, ptr_end_by_two, ptr_end, bram_en_2_delay, bram_en_delay, bram_en, stream_in_shk, stream_out_accep})
             9'b1001xxx1x:begin
                 bram_en <= 1'b1;
                 bram_wen <= 1'b1;
             end
-            9'b0010xxxx1:begin
+            9'b0010xxxxx:begin
                 bram_en <= 1'b1;
                 bram_wen <= 1'b0;
             end
-            9'b0100000xx:begin
+            9'b0100000x1:begin
                 bram_en <= 1'b1;
                 bram_wen <= 1'b0;
             end
@@ -133,6 +135,21 @@ begin
 end
 
 assign stream_out_tlast = ptr_end && (bram_index == bram_bound_index + 1);
+always@(posedge clk)
+begin
+    if(!rstn)
+    begin
+        out_tlast <= 1'b0;
+    end
+    else if(stream_out_tlast)
+    begin
+        out_tlast <= 1'b1;
+    end
+    else
+    begin
+        out_tlast <= out_tlast;
+    end
+end
 
 always@(*)
 begin

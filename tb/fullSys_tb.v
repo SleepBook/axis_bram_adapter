@@ -144,13 +144,12 @@ begin
     reload = 0;
 
     #20 rst_n = 1;
-
+    axi_lite_write(0, 32'h00000001);
     //setting the cntl reg
     axi_lite_write(4, 32'd0);
     axi_lite_write(8, 32'd8);
 
     //rw = 0;
-    axi_lite_write(0, 32'h00000000);
 
     #15
     //rw = 1;
@@ -264,7 +263,6 @@ begin
     //rw = 0;
     //reload = 1;
     axi_lite_write(0, 32'h00000002);
-    #10
     //rw = 0;
     //reload = 0;
     axi_lite_write(0, 32'h00000000);
@@ -272,6 +270,7 @@ begin
     axis_out_ready = 1'b1;
     
     #1000
+    axis_out_ready = 1'b0;
     $finish;
 end
 endmodule
